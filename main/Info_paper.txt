@@ -1,0 +1,62 @@
+Hola, Jesús.
+
+Ayer por la mañana me mandaron de excursion al SIMO (mejor dicho, al TIMO) y así este mail te llega después de lo acordado.
+
+Bien, recogiendo tu ofrecimiento te cuento lo que tenemos hasta el momento y solicito tu consejo sobre qué es más interesante.
+
+SOBRE ESTADISTICAS GENERALES
+
+Evolución por meses de:
+	Numero de articulos
+	Tamaño total agregado de los artículos
+	Contribuciones agregadas
+
+SOBRE AUTORES
+
+Revisiones (contribuciones) totales de cada autor
+Número de artículos diferentes que ha revisado un autor
+Número de artículos diferentes que ha iniciado un autor (considerándolo como el que hizo la primera revisión)
+
+Estadísticas de los parámetros anteriores en días, semanas, meses, trimestres y años
+
+
+SOBRE ARTICULOS
+
+Número de revisiones que ha sufrido un artículo
+Número de autores diferentes que han contribuido en un artículo
+
+Estadísticas de los parámetros anteriores en días, semanas, meses, trimestres y años
+
+ESTADISTICAS
+
+Tenemos para el TAMAÑO DE LOS ARTÍCULOS:
+	Histograma más diagrama de densidad (dividiedo la poblacion total en artículos y templates, y el agregado)
+	Boxplot de todas las muestras.
+	ECDF para cada población de artículos de cada idioma, comparándola con la de una distribución Gaussiana ideal de identicos parámetros
+	Parámetros estadísticos relevantes que describen ambas poblaciones (Summary y cinco números de Tukey)
+	Coeficientes de asimetría y kurtosis (apuntamiento) para cada población
+	Test de Shapiro-Wilkes para cada población, sobre una de cada 100 muestras de cada grupo de artículos.
+	
+Para las CONTRIBUCIONES AGREGADAS DE LOS AUTORES
+	Coeficiente de Gini y curva de Lorenz frente a curva ideal para contribuciones agregadas de autores.
+	
+**************************************************
+********************* IDEAS **********************
+**************************************************
+
+Mañana sacaré algunos gráficos más que son fáciles.
+
+No sé si sería util hacer un gráfico con todas las contribuciones, o artículos diferentes o artículos iniciados por autor, por ejemplo cada mes, durante su vida activa en el proyecto... ¿Se ve algo con un montón de lineas una encima de otra, según vuestra experiencia?
+
+En el artículo de Jakob (adjunto, x si acaso) podrás apreciar algo que me ha llamado la atencion. En la pag. 6,en el diagrama de evolucion de densidad de probabilidad por años no aparece el efecto de los stubs (templates), que me permite dividir a los articulos en dos poblaciones diferentes. No sé si lo ha deshechado adrede... en cualquier caso me resulta curioso.
+
+Te pido opinión sobre que gráficos sacar. Él usa:
+
+Tabla sumario pag 5
+Distribucion de paginas por namespace pag. 5
+Evolucion de distribucion de tamaños de articulos pag 6
+Autores distintos por cada artículo. pag 7
+Distintos articulos editados por autor pag 7
+Ediciones por autor pag. 8
+
+No hemos mirado el tema de los links (numero de enlaces externos y a otros artículos) y, en principio, no lo veo tan interesante...
