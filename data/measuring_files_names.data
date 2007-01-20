@@ -1,0 +1,6 @@
+./graphics/eswiki/data/total_edits.data
+./graphics/eswiki/data/noannons_edits.data
+./graphics/eswiki/data/annon_edits.data
+./graphics/eswiki/data/authors_per_article_desc.data
+./graphics/eswiki/data/articles_per_logged_author_desc.data
+./graphics/eswiki/data/articles_per_anonymous_author_desc.data

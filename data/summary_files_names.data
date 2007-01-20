@@ -1,0 +1,11 @@
+./graphics/eswiki/data/page_dates.data
+./graphics/eswiki/data/page_Count_evol.data
+./graphics/eswiki/data/page_Len_Sum_log.data
+./graphics/eswiki/data/contribs_evol.data
+./graphics/eswiki/data/nspaces.data
+./graphics/eswiki/data/nspace_distrib.data
+./graphics/eswiki/data/diffArticles.data
+./graphics/eswiki/data/authors.data
+./graphics/eswiki/data/diff_authors_x_article.data
+./graphics/eswiki/data/authors_authors_per_pagelen.data
+./graphics/eswiki/data/pagelen_authors_per_pagelen.data
