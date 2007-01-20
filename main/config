@@ -1,6 +1,0 @@
-java_path=/home/jfelipe/Programas/jre1.5.0_06/bin/java
-mwdumper_path=../../mwdumper.jar
-mysql_user=root
-mysql_pass=phoenix
-langs=dewiki frwiki plwiki jawiki nlwiki itwiki ptwiki svwiki eswiki
-dump_type=dump_stub
