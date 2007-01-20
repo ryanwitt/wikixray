@@ -1,10 +1,43 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+This module contains some methods to create graphics and files with 
+statistical results about Wikipedia database dumps.
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 from rpy import *
 import dbaccess, math, os
 
-#SE DEBEN TOMAR LOS VALORES GENERALES DE IDIOMAS DEL FICHERO DE CONFIGURACION COMUN DE LA APLICACION
-#SE DEBEN GENERAR SUBDIRECTORIOS INDEPENDIENTES EN EL DIRECTORIO GRAPHICS PARA ALMACENAR LOS RESULTADOS DE CADA IDIOMA
+#WE TAKE DE LANGUAGE LIST FROM THE COMMON CONFIG FILE
+#WE CREATE INDEPENDENT SUBDIRECTORIES WITHIN THE GRAPHICS DIRECTORY 
+#TO STORE RESULTS FOR EACH LANGUAGE VERSION
 
 def contributions(idiomas):
+    """
+    Create some graphs and files with statistical results about authors contributions
+    
+    @type  idiomas: list of strings
+    @param idiomas: list of strings indicating the language versions to process
+    """
     for idioma in idiomas:
         acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_stub")
         #acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_pages")
@@ -32,45 +65,57 @@ def contributions(idiomas):
         #T=raw_input("press any key...")
 
 def histogram(idiomas):
-	filenames=["boxplot_log.png", "histogram_log.png", "histogram_log_low.png", "histogram_log_high.png", "ecdf_log_low.png", "ecdf_log_high.png", "data/page_len_log.data", "/data/histograms.info", "ecdf_total.png"]
-	
-	for idioma in idiomas:
-		print "Creando histogramas para el idioma ... "+idioma
-		#IMPRIMIR A OTRO ARCHIVO LOS NOMBRES DE ARCHIVOS DE GRAFICOS, SEGUN EL ORDEN DEL SCRIPT DE R histogram.R
-		f=open("./data/hist_files_names.data",'w')
-		for line in filenames:
-			f.write("./graphics/"+idioma+"/"+line+"\n")
-		f.close()
-		acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_tab_page")
-	
-		#ESTIMANDO SOLO LAS PAGINAS QUE CORRESPONDEN A ARTICULOS, CON NAMESPACE=MAIN=0
-		#dbaccess.dropTab_SQL(acceso[1], "aux")
-		#dbaccess.query_SQL(acceso[1],"page_id, page_len","page", where="page_namespace=0", order="page_len", create="aux")
-		result=dbaccess.query_SQL(acceso[1], "page_id, page_len", "aux")
-		dbaccess.close_Connection(acceso[0])
-		data=__tup_to_list(result)
-		page_len=data.pop()
-		for i in range(len(page_len)):
-			if page_len[i]!=0:
-				page_len[i]=math.log10(page_len[i])
-		
-		#IMPRIMIR A OTRO ARCHIVO la lista con los valores de tamaño de pagina con los que hacer los histogramas
-		f=open("./graphics/"+idioma+"/data/page_len_log.data", 'w')
-		for value in page_len:
-			f.writelines(str(value)+"\n")
-		f.close()
-		
-		#LLAMAR A LA FUNCION Histogram.R
-		succ=os.system("R --vanilla < ./histogram.R > debug_R")
-		if succ==0:
-			print "Funcion histogram ejecutada con exito para el lenguage... "+idioma
-		
+    """
+    Create histograms depicting article size distribution for a certain language version
+    
+    @type  idiomas: list of strings
+    @param idiomas: list of strings indicating the language versions to process
+    """
+    filenames=["boxplot_log.png", "histogram_log.png", "histogram_log_low.png", "histogram_log_high.png", "ecdf_log_low.png", "ecdf_log_high.png", "data/page_len_log.data", "/data/histograms.info", "ecdf_total.png"]
+    
+    for idioma in idiomas:
+        print "Creando histogramas para el idioma ... "+idioma
+        #Print to another file the names of graphics files, following the order in the GNU R script histogram.R
+        f=open("./data/hist_files_names.data",'w')
+        for line in filenames:
+            f.write("./graphics/"+idioma+"/"+line+"\n")
+        f.close()
+        acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_tab_page")
+    
+        #Considering only database pages corresponding to articles, with NAMESPACE=MAIN=0
+        #dbaccess.dropTab_SQL(acceso[1], "aux")
+        #dbaccess.query_SQL(acceso[1],"page_id, page_len","page", where="page_namespace=0", order="page_len", create="aux")
+        result=dbaccess.query_SQL(acceso[1], "page_id, page_len", "aux")
+        dbaccess.close_Connection(acceso[0])
+        data=__tup_to_list(result)
+        page_len=data.pop()
+        for i in range(len(page_len)):
+            if page_len[i]!=0:
+                page_len[i]=math.log10(page_len[i])
+        
+        #Print to another file a list with article sizes to plot histograms
+        f=open("./graphics/"+idioma+"/data/page_len_log.data", 'w')
+        for value in page_len:
+            f.writelines(str(value)+"\n")
+        f.close()
+        
+        #CALL THE GNU R SCRIPT Histogram.R
+        succ=os.system("R --vanilla < ./histogram.R > debug_R")
+        if succ==0:
+            print "Funcion histogram ejecutada con exito para el lenguage... "+idioma
+        
 
 def summary_evol(idiomas):
-
-##	Mucho cuidado al seleccionar los valores de la tabla de evolucion en numero de articulos, tam, etc.
-##  Se debe seleccionar por si acaso procede, siempre como GROUP BY(pageCount, limitDate), ya que 
-##  en periodos de inactiviad se repetiran algunas entradas en la tabla
+    """
+    Create some graphs summarizing the evolution in time of critical quantitative
+    parameters for each language version to explore
+    
+    @type  idiomas: list of strings
+    @param idiomas: list of strings indicating the language versions to process
+    """
+##	¡¡WARNING!! Please be careful when selecting values from tables storing evolution in time of number of articles, size etc.
+##  You must always use a GROUP BY(pageCount, limitDate) clause, due to 
+##  periods of inactivity that could generate duplicate entries in the graphics
     filenames=["page_dates.data", "page_Count_evol.data", "page_Len_Sum_log.data", "contribs_evol.data", "nspaces.data", "nspace_distrib.data", "diffArticles.data", "authors.data", "diff_authors_x_article.data", "authors_authors_per_pagelen.data", "pagelen_authors_per_pagelen.data"]
 
     filenames_out=["Tot_num_articles_absx_absy.png", "Tot_num_articles_absx_logy.png", "Tot_num_articles_logx_logy.png", "Tot_pagelensum_absx_absy.png", "Tot_pagelensum_absx_logy.png", "Tot_pagelensum_logx_logy.png", "Tot_contribs_absx_absy.png", "Tot_contribs_absx_logy.png", "Tot_contribs_logx_logy.png", "Diffs_articles_per_author.png", "Diffs_authors_per_article.png", "Diff_authors_against_page_len.png"]
@@ -132,8 +177,8 @@ def summary_evol(idiomas):
         autxplen=datadautxplen.pop()
         lenautxplen=datadautxplen.pop()
 
-##  Introducir en la lista de datos los resultados de las queries en el orden adecuado
-##  de forma que coincidan con los nombres de ficheros que pasamos a R      
+##  Introduce in data list results form queries in the proper order
+##  corresponding with the name files we pass to the GNU R script summary_evol.R      
         for i in range(len(page_Len_Sum)):
             if page_Len_Sum[i]!=0:
                 page_Len_Sum[i]=math.log10(page_Len_Sum[i])
@@ -148,19 +193,19 @@ def summary_evol(idiomas):
         
         ######################################
         
-        #Pasar los nombres de los archivos al script de R a través de un archivo
+        #Pass data filenames to the GNU R script with a file
         f=open("./data/summary_files_names.data",'w')
         for line in filenames:
             f.write("./graphics/"+idioma+"/data/"+line+"\n")
         f.close()
         
-        #Idem con los archivos de salida gráfica
+        #Idem with graphic output filenames
         f=open("./data/summary_files_out.data",'w')
         for line in filenames_out:
             f.write("./graphics/"+idioma+"/"+line+"\n")
         f.close()
             
-        #LLAMAR A LA FUNCION summary_evol.R
+        #CALL THE GNU R SCRIPT summary_evol.R
         
         succ=os.system("R --vanilla < ./summary_evol.R > debug_R")
         if succ==0:
@@ -180,6 +225,13 @@ def summary_evol(idiomas):
         
 
 def measuring(idiomas):
+    """
+    Create some graphs following the research presented by Jakob Voss in his paper
+    Mesuring Wikipedia (ISSI 2005)
+    
+    @type  idiomas: list of strings
+    @param idiomas: list of strings indicating the language versions to process
+    """
 ##   Generates some graphics reproducing those in Measuring Wikipedia article
     filenames=["total_edits.data", "noannons_edits.data", "annon_edits.data", "authors_per_article_desc.data", "articles_per_logged_author_desc.data",  "articles_per_anonymous_author_desc.data"]
     
@@ -240,7 +292,7 @@ def measuring(idiomas):
         data=__tup_to_list(tc_ann,2)
         listcann=data.pop()
         
-##        Ordenamos los resultados para que se puedan ajustar a una Power Law
+##        Arranging results in a decreasing way to adjust them to a power law
         listcnoann.sort(reverse=True)
         listcauthors.sort(reverse=True)
         listcann.sort(reverse=True)
@@ -262,19 +314,19 @@ def measuring(idiomas):
             else:
                 __makeDataFile(idioma, filename, data)
         
-        #Pasar los nombres de los archivos al script de R a través de un archivo
+        #Pass data filenames to the GNU R script with a file
         f=open("./data/measuring_files_names.data",'w')
         for line in filenames:
             f.write("./graphics/"+idioma+"/data/"+line+"\n")
         f.close()
         
-        #Idem con los archivos de salida gráfica
+        #Idem with graphic output filenames
         f=open("./data/measuring_files_out.data",'w')
         for line in filenames_out:
             f.write("./graphics/"+idioma+"/"+line+"\n")
         f.close()
             
-        #LLAMAR A LA FUNCION measuring_Wiki.R
+        #CALL GNU R SCRIPT measuring_Wiki.R
         
         succ=os.system("R --vanilla < ./measuring_Wiki.R > debug_R")
         if succ==0:
@@ -285,40 +337,62 @@ def measuring(idiomas):
 #####################################################################
     
 def __lorenz_Curve(values):
-	x_values=[]
-	for i in range(0, len(values)+1):	
-		x_values.append(100.0*(float(i)/len(values)))
-	
-	values.insert(0, 0)
-	y_values_lorenz=[]
-	for j in range(len(values)):
-		y_values_lorenz.append(sum(values[0:j+1]))
-	for k in range(len(y_values_lorenz)):
-		y_values_lorenz[k]=100.0*(float(y_values_lorenz[k])/y_values_lorenz[len(y_values_lorenz)-1])
-	
-	g_coeff=__gini_Coef(values)
-	r.plot(x_values, y_values_lorenz, xlab="(%)Authors",ylab="(%)Cumulative contribution", main="Cumulative distribution function", type="l", col=2)
-	r.legend(10, 80, legend="Gini Coefficient = %f" % g_coeff)
-	r.legend(10, 100, legend=r.c("Line of perfect equality", "Lorenz curve"), col=r.c(1,2), pch=r.c(1,2))
-	r.lines(x_values, x_values)
-	r.dev_off()
-	#r.lines(r.lowess(log(lista)))
-
-
+    """
+    Uses RPY module to depict a Lorenz curve useful for GINI graphs
+    
+    @type  values: list of ints
+    @param values: list of integers summarizing total contributions for each registered author
+    """
+    x_values=[]
+    for i in range(0, len(values)+1):	
+        x_values.append(100.0*(float(i)/len(values)))
+    
+    values.insert(0, 0)
+    y_values_lorenz=[]
+    for j in range(len(values)):
+        y_values_lorenz.append(sum(values[0:j+1]))
+    for k in range(len(y_values_lorenz)):
+        y_values_lorenz[k]=100.0*(float(y_values_lorenz[k])/y_values_lorenz[len(y_values_lorenz)-1])
+    
+    g_coeff=__gini_Coef(values)
+    r.plot(x_values, y_values_lorenz, xlab="(%)Authors",ylab="(%)Cumulative contribution", main="Cumulative distribution function", type="l", col=2)
+    r.legend(10, 80, legend="Gini Coefficient = %f" % g_coeff)
+    r.legend(10, 100, legend=r.c("Line of perfect equality", "Lorenz curve"), col=r.c(1,2), pch=r.c(1,2))
+    r.lines(x_values, x_values)
+    r.dev_off()
+    #r.lines(r.lowess(log(lista)))
+    
 def __gini_Coef(values, insert=False):
-	if insert:
-		values.insert(0,0)
-	sum_numerator=0
-	sum_denominator=0
-	for i in range(1, len(values)):
-		sum_numerator+=(len(values)-i)*values[i]
-		sum_denominator+=values[i]
-	
-	g_coeff= (1.0/(len(values)-1))*(len(values)-2*(sum_numerator/sum_denominator))
-	return g_coeff
-
+    """
+    Plots a GINI graph for author contributions 
+    
+    @type  values: list of ints
+    @param values: list of integers summarizing total contributions for each registered author
+    @type  insert: boolean flag
+    @param insert: warns the method about inserting a (0,0) tuple at the beginning of the graphic to depict an accurate curve
+    """
+    
+    if insert:
+        values.insert(0,0)
+    sum_numerator=0
+    sum_denominator=0
+    for i in range(1, len(values)):
+        sum_numerator+=(len(values)-i)*values[i]
+        sum_denominator+=values[i]
+    
+    g_coeff= (1.0/(len(values)-1))*(len(values)-2*(sum_numerator/sum_denominator))
+    return g_coeff
 
 def __tup_to_list(result, flag=0):
+    """
+    A method to convert a tuple of bidimensional tuples return by a database query to a list
+   of bidimensional lists we can use in other methods
+    
+    @type  result: tuple of bidimensional tuples
+    @param result: the tuple received as a result of a database query
+    @type  flag: int flag
+    @param insert: indicates 0 (int, int) tuples; 1 (int, string) tuples; 2 (string, string) tuples
+    """
     aux=list(result)
     for i in range(len(aux)):
         aux[i]=list(aux[i])
@@ -337,18 +411,44 @@ def __tup_to_list(result, flag=0):
     return [listax, listay]
 
 def __makeDataFile(idioma, filename, data):
-		f=open("./graphics/"+idioma+"/data/"+filename, 'w')
-		for value in data:
-			f.writelines(str(value)+"\n")
-		f.close()
+    """
+    Create data files to transfer results to GNU R
+    
+    @type  idioma: string
+    @param idioma: indicates the language version we are processing
+    @type  filename: string
+    @param filename: name of the file to which we want to transfer data
+    @type  data: list
+    @param data: list of data we write in the file
+    """
+    f=open("./graphics/"+idioma+"/data/"+filename, 'w')
+    for value in data:
+        f.writelines(str(value)+"\n")
+    f.close()
 
 def __makeDatesFile(idioma, filename, dates):
-        f=open("./graphics/"+idioma+"/data/page_dates.data", 'w')
-        for adate in dates:
-            f.writelines(str(adate).split()[0]+"\n")
-        f.close()
-        
+    """
+    Create files to transfer dates results to GNU R
+    
+    @type  idioma: string
+    @param idioma: indicates the language version we are processing
+    @type  filename: string
+    @param filename: name of the file to which we want to transfer data
+    @type  dates: list of string
+    @param dates: list of dates we write in the file
+    """
+    f=open("./graphics/"+idioma+"/data/page_dates.data", 'w')
+    for adate in dates:
+        f.writelines(str(adate).split()[0]+"\n")
+    f.close()
+    
 def create_dirs(idiomas):
+    """
+    Generates appropiate directory hierarchy to store graphics, data files and results files
+    
+    @type  idiomas: list of strings
+    @param idioma: language versions we want to process
+    """
     directorios=os.listdir("./")
     if ("graphics" not in directorios):
         os.makedirs("./graphics")
@@ -360,13 +460,19 @@ def create_dirs(idiomas):
     if("data" not in directorios):
         os.makedirs("./data")
 
-def work():
+def work(idiomas):
+    """
+    Katapult function for the rest of the graphic methods in this module
+    
+    @type  idiomas: list of strings
+    @param idiomas: indicates the language version we are processing
+    """
     ##	idiomas=["eswiki","svwiki", "itwiki", "ptwiki", "nlwiki", "plwiki", "dewiki"]
-    idiomas=["eswiki"]
+    ##  idiomas=["eswiki"]
     create_dirs(idiomas)
-    ##	contributions(idiomas)
-    ##	histogram(idiomas)
-##    summary_evol(idiomas)
+    contributions(idiomas)
+    histogram(idiomas)
+    summary_evol(idiomas)
     measuring(idiomas)
     
-work()
+##work()
