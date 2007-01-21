@@ -1,3 +1,28 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+Read the config file and returns appropiate params to other modules
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 class qA_conf(object):
 #Una clase para leer el fichero de configuracion y devolver los parametros necesarios a los restantes modulos del programa
 

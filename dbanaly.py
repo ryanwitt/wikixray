@@ -1,9 +1,35 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+Creates additional database tables with relevant quantitative data (including
+evolution in time for important parameters).
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 import dbaccess, datetime
 #import gnuplotter
 
 def info_authors(conf, language="furwiki"):
 	"""
-	MÈtodo para el tratamiento de datos por usuario
+	M√©todo para el tratamiento de datos por usuario
 	"""
 	#Obtener una conexion a la BD que corresponda
 	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
@@ -18,7 +44,7 @@ def info_authors(conf, language="furwiki"):
 	__total_rev(acceso[1], language, target)
 	
 	############################
-	#NUMERO TOTAL DE ARTÕCULOS DIFERENTES QUE HA REVISADO UN AUTOR
+	#NUMERO TOTAL DE ART√çCULOS DIFERENTES QUE HA REVISADO UN AUTOR
 	
 	__total_rev_per_target(acceso[1], language, target)
 	
@@ -34,13 +60,13 @@ def info_authors(conf, language="furwiki"):
 		__total_rev_time(acceso[1], interval,language, target)
 	
 	############################
-	#NUMERO DE ARTÕCULOS DIFERENTES QUE HA REVISADO UN AUTOR, PARA VARIOS INTERVALOS ESPECIFICADOS EN INTERVALS
+	#NUMERO DE ART√çCULOS DIFERENTES QUE HA REVISADO UN AUTOR, PARA VARIOS INTERVALOS ESPECIFICADOS EN INTERVALS
 	
 	for interval in intervals:
 		__total_rev_per_target_time(acceso[1], interval,language, target)
 	
 	############################
-	#NUMERO DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR, POR MESES SEMANAS Y DIAS (aÒos, trimestres...)
+	#NUMERO DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR, POR MESES SEMANAS Y DIAS (a√±os, trimestres...)
 	#Se considera como comienzo la primera revision de un articulo
 	
 	for interval in intervals:
@@ -51,7 +77,7 @@ def info_authors(conf, language="furwiki"):
 		
 def info_articles(conf, language="furwiki"):
 	"""
-	MÈtodo para el tratamiento de datos por articulo
+	M√©todo para el tratamiento de datos por articulo
 	"""
 	#Obtener una conexion a la BD que corresponda
 	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
@@ -66,7 +92,7 @@ def info_articles(conf, language="furwiki"):
 	__total_rev(acceso[1], language, target)
 	
 	###########################
-	#NUMERO TOTAL DE AUTORES DISTINTOS QUE HAN REVISADO UN ARTÕCULO
+	#NUMERO TOTAL DE AUTORES DISTINTOS QUE HAN REVISADO UN ART√çCULO
 	__total_rev_per_target(acceso[1], language, target)
 	
 	###########################
@@ -75,7 +101,7 @@ def info_articles(conf, language="furwiki"):
 		__total_rev_time(acceso[1], interval,language, target)
 	
 	###########################
-	#NUMERO DE AUTORES DISTINTOS QUE HAN REVISADO UN ARTÕCULO x meses, semanas y dias
+	#NUMERO DE AUTORES DISTINTOS QUE HAN REVISADO UN ART√çCULO x meses, semanas y dias
 	for interval in intervals:
 		__total_rev_per_target_time(acceso[1], interval,language, target)
 	
@@ -88,8 +114,8 @@ def info_contents(conf, language="furwiki"):
 	###########################
 	#ANALISIS DEl CONTENIDO
 	###########################
-	##PODEMOS VER LA EVOLUCION DEL TAMA—O DE LOS ARTICULOS USANDO page.page_len (tam articulo sin comprimir)
-	##TamaÒos de contribuciones ø?
+	##PODEMOS VER LA EVOLUCION DEL TAMA√ëO DE LOS ARTICULOS USANDO page.page_len (tam articulo sin comprimir)
+	##Tama√±os de contribuciones ¬ø?
 	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
 	__content_evolution(acceso[1], language)
 	dbaccess.close_Connection(acceso[0])
@@ -121,7 +147,7 @@ def flux_capacitor(conf, language="furwiki"):
 
 def __total_rev(cursor, language, target="author"):
 	#target=author Contribuciones por cada usuario sin anonimos
-	#target=article Contribuciones por cada artÌculo, sin incluir revisores anonimos
+	#target=article Contribuciones por cada art√≠culo, sin incluir revisores anonimos
 	dbaccess.dropTab_SQL(cursor, "stats_Contrib_NoAnnons_"+target+"_"+language)
 	Total_Contrib_NoAnnons=dbaccess.query_SQL(cursor,target+", count(*) AS theCount","stats_"+language,"page_namespace=0 AND author NOT LIKE '0'","theCount", target, "stats_Contrib_NoAnnons_"+target+"_"+language+" ")
 	#Idem con anonimos integrados
@@ -209,7 +235,7 @@ def __total_rev_per_target_time(cursor,interval,language, target="author"):
 	target = author Recupera el numero total de articulos diferentes que ha revisado cada autor hasta la fecha actual
 	desglosando la info en intervalos temporales
 	
-	target = article Recupera el numero total de autores diferentes que han revisado un artÌculo hasta la fecha actual,
+	target = article Recupera el numero total de autores diferentes que han revisado un art√≠culo hasta la fecha actual,
 	desglosando la info en intervalos temporales
 	"""
 	type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
@@ -244,7 +270,7 @@ def __article_init_author_time(cursor,interval,language, target="author"):
 	
 	"""
 	############################################
-	°°°°°WARNING!!!!!!
+	¬°¬°¬°¬°¬°WARNING!!!!!!
 	Es necesario llamar con anterioridad al metodo __total_article_init_author puesto que de otro modo no se crea la tabla temporal
 	intermedia para que funcione este metodo
 	############################################
@@ -328,7 +354,7 @@ def __content_evolution(cursor, language="furwiki"):
 	#dbaccess.dropTab_SQL(cursor, "stats_nspace_"+language)
 	#dbaccess.query_SQL(cursor,"page_namespace as namespace, COUNT(*) as pages_nspace", "page", group="page_namespace", create="stats_nspace_"+language)
 
-	#TAMA—O DE PAGINA Y NUMERO DE AUTORES DISTINTOS QUE LA HAN EDITADO
+	#TAMA√ëO DE PAGINA Y NUMERO DE AUTORES DISTINTOS QUE LA HAN EDITADO
 	
 	#CAMBIAR PARA EL CASO DE QUE UTILICEMOS AUX
 	

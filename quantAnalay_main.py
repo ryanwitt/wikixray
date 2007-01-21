@@ -1,9 +1,35 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+Main module of WikiXRay, responsible for calling the other functional modules.
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 import dbdump
 import dbanaly
 import qA_conf as q
 import graphics
 
-""" STEPS
+""" 
+STEPS
 
 1. Download and decompress  db dumps for each Wikipedia language version we want to analyse.
 

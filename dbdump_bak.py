@@ -1,23 +1,44 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+Module for downloading database dump for each langauge version we want to 
+analyze. Once downloaded in 7zip format (storage optimization), we decompress the
+dump to a local MySQL database.
+
+This way, we have prepared the database for the next steps in the quantitative
+analysis process.
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 import os, datetime, dbaccess
 
-"""
-El objetivo de esta clase es descargar las bases de datos comprimidas de los diferentes idiomas
-que van a ser objeto de estudio por parte del programa.
-
-Una vez descargadas, en formazo 7zip para optimizar el espacio de almacenamiento, se descomprime
-la base de datos de cada idioma a su correspondiente base de datos en MySQL local.
-
-De esta forma, la BD de cada idioma queda ya preparada para su correspondiente análisis.
-"""
 java_path="/home/jfelipe/Programas/jre1.5.0_06/bin/java"
 mwdumper_path="../../mwdumper.jar"
 
 def download_bd (language="furwiki"):
-	# Recibe como parámetro el idioma que queremos descargar
-	# La funcion usará w-get para descubrir la última versión correcta del volcado de ese idioma
+	# Recibe como parÃ¡metro el idioma que queremos descargar
+	# La funcion usarÃ¡ w-get para descubrir la Ãºltima versiÃ³n correcta del volcado de ese idioma
 	
-	#Fecha adecuada para la versión del dump a descargar
-	#Si no existe dump para esa fecha, vamos hacia atrás hasta recoger el último disponible
+	#Fecha adecuada para la versiÃ³n del dump a descargar
+	#Si no existe dump para esa fecha, vamos hacia atrÃ¡s hasta recoger el Ãºltimo disponible
 	date_object=datetime.date.today()
 	str_date=date_object.isoformat().replace("-","")
 	delta=datetime.timedelta(days=1)
@@ -40,11 +61,11 @@ def download_bd (language="furwiki"):
 		print "status= %i" % success	
 
 def unzip_bd (filename, language="furwiki"):
-	# Recibe como parámetro el idioma que queremos descomprimir
+	# Recibe como parÃ¡metro el idioma que queremos descomprimir
 	ok=__init_bd(language)
 	
 	if ok == 0:
-		# La funcion llama al script de descompresión y pasa a traves de un pipe la info a mwdumper y de ahí a MySQL
+		# La funcion llama al script de descompresiÃ³n y pasa a traves de un pipe la info a mwdumper y de ahÃ­ a MySQL
 		command="7za e -so dumps/"+filename+ " | "+java_path+" -jar "+mwdumper_path+" --format=sql:1.5 | mysql -u root -pphoenix "+language
 		success=os.system(command)
 		if success == 0:
@@ -53,7 +74,7 @@ def unzip_bd (filename, language="furwiki"):
 			print "Ocurrio algun problema al descomprimir BD del idioma ... "+language+"\n\n"
 		
 	else:
-		print "Error de inicialización de la BD"
+		print "Error de inicializaciÃ³n de la BD"
 
 def __init_bd(language="furwiki"):
 	# Construye la BD en MySQL para poder importar el dump del idioma indicado como argumento

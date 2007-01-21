@@ -1,17 +1,38 @@
+#############################################
+#      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
+#############################################
+#                  http://wikixray.berlios.de                                              
+#############################################
+# Copyright (c) 2006-7 Universidad Rey Juan Carlos (Madrid, Spain)     
+#############################################
+# This program is free software. You can redistribute it and/or modify    
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 or later of the GPL.     
+#############################################
+# Author: Jose Felipe Ortega Soto                                                             
+
+"""
+Module for downloading database dump for each langauge version we want to 
+analyze. Once downloaded in 7zip format (storage optimization), we decompress the
+dump to a local MySQL database.
+
+This way, we have prepared the database for the next steps in the quantitative
+analysis process.
+
+@see: quantAnalay_main
+
+@authors: Jose Felipe Ortega
+@organization: Grupo de Sistemas y Comunicaciones, Universidad Rey Juan Carlos
+@copyright:    Universidad Rey Juan Carlos (Madrid, Spain)
+@license:      GNU GPL version 2 or any later version
+@contact:      jfelipe@gsyc.escet.urjc.es
+"""
+
 import os, datetime, dbaccess
 
-"""
-El objetivo de esta clase es descargar las bases de datos comprimidas de los diferentes idiomas
-que van a ser objeto de estudio por parte del programa.
-
-Una vez descargadas, en formazo 7zip para optimizar el espacio de almacenamiento, se descomprime
-la base de datos de cada idioma a su correspondiente base de datos en MySQL local.
-
-De esta forma, la BD de cada idioma queda ya preparada para su correspondiente an·lisis.
-"""
 def download_bd (conf, language="furwiki"):
-	# Recibe como par·metro el idioma que queremos descargar
-	# La funcion usar· w-get para descubrir la ˙ltima versiÛn correcta del volcado de ese idioma
+	# Recibe como par√°metro el idioma que queremos descargar
+	# La funcion usar√° w-get para descubrir la √∫ltima versi√≥n correcta del volcado de ese idioma
 	
 	str_types={"dump_pages":"pages-meta-history.xml.7z", "dump_stub":"stub-meta-history.xml.gz"}
 	
@@ -34,13 +55,13 @@ def download_bd (conf, language="furwiki"):
 	print "status= %i" % success	
 
 def unzip_bd (conf, filename, language="furwiki"):
-	# Recibe como par·metro el idioma que queremos descomprimir
+	# Recibe como par√°metro el idioma que queremos descomprimir
 	ok=__init_bd(conf, language)
 	#print "traza ok = %i \n" % ok	
 	if ok == 0:
 		print("BD inicializada, descomprimiendo archivos...")
 		if conf.dumptype=="dump_pages":
-			# La funcion llama al script de descompresiÛn y pasa a traves de un pipe la info a mwdumper y de ahÌ a MySQL
+			# La funcion llama al script de descompresi√≥n y pasa a traves de un pipe la info a mwdumper y de ah√≠ a MySQL
 			command="7za e -so dumps/"+filename+ " | "+conf.jpath+" -jar "+conf.mwpath+" --format=sql:1.5 | mysql -u "+conf.msqlu+" -p"+conf.msqlp+" "+language+conf.dumptype.lstrip("dump")
 			success=os.system(command)
 			if success == 0:
@@ -65,7 +86,7 @@ def unzip_bd (conf, filename, language="furwiki"):
 		else:
 			print "Error en la seleccion del tipo de archivo de descompresion"
 	else:
-		print "Error de inicializaciÛn de la BD\n"
+		print "Error de inicializaci√≥n de la BD\n"
 
 def __init_bd(conf, language="furwiki", dump_type="dump_stub"):
 	# Construye la BD en MySQL para poder importar el dump del idioma indicado como argumento
