@@ -145,18 +145,18 @@ def summary_evol(idiomas):
         dates_x=data.pop()
         page_Count=data.pop()
         
-        if idioma=="frwiki":
-            data2=__tup_to_list(result2, 2)
-            dates_x=data2.pop()
-            dates_x.pop(0)
-            dates_x.pop(0)
-            page_Len_Sum=data2.pop()
-            page_Len_Sum.pop(0)
-            page_Len_Sum.pop(0)
-        else:
-            data2=__tup_to_list(result2, 1)
-            dates_x=data2.pop()
-            page_Len_Sum=data2.pop()
+##        if idioma=="frwiki":
+        data2=__tup_to_list(result2, 2)
+        dates_x=data2.pop()
+        dates_x.pop(0)
+        dates_x.pop(0)
+        page_Len_Sum=data2.pop()
+        page_Len_Sum.pop(0)
+        page_Len_Sum.pop(0)
+##        else:
+##            data2=__tup_to_list(result2, 1)
+##            dates_x=data2.pop()
+##            page_Len_Sum=data2.pop()
         
         data3=__tup_to_list(result3, 1)
         dates_x=data3.pop()
@@ -477,11 +477,11 @@ def work(idiomas):
     @param idiomas: indicates the language version we are processing
     """
     ##  idiomas=["eswiki"]
-    create_dirs(idiomas)
-    contributions(idiomas)
-    histogram(idiomas)
+##    create_dirs(idiomas)
+##    contributions(idiomas)
+##    histogram(idiomas)
     summary_evol(idiomas)
     measuring(idiomas)
-##idiomas=["eswiki","svwiki", "itwiki", "ptwiki", "nlwiki", "jawiki","plwiki", "frwiki", "dewiki"]
+idiomas=["dawiki", "skwiki", "idwiki", "slwiki", "srwiki", "bgwiki", "ltwiki", "rowiki", "trwiki", "etwiki", "hrwiki"]
 ##idiomas=["frwiki", "dewiki"]
-##work(idiomas)
+work(idiomas)

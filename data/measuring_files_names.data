@@ -1,6 +1,6 @@
-./graphics/mlwiki/data/total_edits.data
-./graphics/mlwiki/data/noannons_edits.data
-./graphics/mlwiki/data/annon_edits.data
-./graphics/mlwiki/data/authors_per_article_desc.data
-./graphics/mlwiki/data/articles_per_logged_author_desc.data
-./graphics/mlwiki/data/articles_per_anonymous_author_desc.data
+./graphics/hrwiki/data/total_edits.data
+./graphics/hrwiki/data/noannons_edits.data
+./graphics/hrwiki/data/annon_edits.data
+./graphics/hrwiki/data/authors_per_article_desc.data
+./graphics/hrwiki/data/articles_per_logged_author_desc.data
+./graphics/hrwiki/data/articles_per_anonymous_author_desc.data
