@@ -477,11 +477,11 @@ def work(idiomas):
     @param idiomas: indicates the language version we are processing
     """
     ##  idiomas=["eswiki"]
-##    create_dirs(idiomas)
-##    contributions(idiomas)
-##    histogram(idiomas)
+    create_dirs(idiomas)
+    contributions(idiomas)
+    histogram(idiomas)
     summary_evol(idiomas)
     measuring(idiomas)
-idiomas=["dawiki", "skwiki", "idwiki", "slwiki", "srwiki", "bgwiki", "ltwiki", "rowiki", "trwiki", "etwiki", "hrwiki"]
+##idiomas=["dawiki", "skwiki", "idwiki", "slwiki", "srwiki", "bgwiki", "ltwiki", "rowiki", "trwiki", "etwiki", "hrwiki"]
 ##idiomas=["frwiki", "dewiki"]
-work(idiomas)
+##work(idiomas)
