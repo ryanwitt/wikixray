@@ -80,7 +80,7 @@ def histogram(idiomas):
         for line in filenames:
             f.write("./graphics/"+idioma+"/"+line+"\n")
         f.close()
-        acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_tab_page")
+        acceso = dbaccess.get_Connection("localhost", 3306, "root", "phoenix", idioma+"_stub")
     
         #Considering only database pages corresponding to articles, with NAMESPACE=MAIN=0
         #dbaccess.dropTab_SQL(acceso[1], "aux")
@@ -145,9 +145,18 @@ def summary_evol(idiomas):
         dates_x=data.pop()
         page_Count=data.pop()
         
-        data2=__tup_to_list(result2, 1)
-        dates_x=data2.pop()
-        page_Len_Sum=data2.pop()
+        if idioma=="frwiki":
+            data2=__tup_to_list(result2, 2)
+            dates_x=data2.pop()
+            dates_x.pop(0)
+            dates_x.pop(0)
+            page_Len_Sum=data2.pop()
+            page_Len_Sum.pop(0)
+            page_Len_Sum.pop(0)
+        else:
+            data2=__tup_to_list(result2, 1)
+            dates_x=data2.pop()
+            page_Len_Sum=data2.pop()
         
         data3=__tup_to_list(result3, 1)
         dates_x=data3.pop()
@@ -330,7 +339,7 @@ def measuring(idiomas):
         
         succ=os.system("R --vanilla < ./measuring_Wiki.R > debug_R")
         if succ==0:
-            print "Funcion summary_evol ejecutada con exito para el lenguage... "+idioma
+            print "Funcion measuring.R ejecutada con exito para el lenguage... "+idioma
     
 #####################################################################
 ## FUNCTIONAL METHODS FOR SEVERAL CONCRETE AND REPETITIVE JOBS
@@ -406,7 +415,7 @@ def __tup_to_list(result, flag=0):
             listax.append(int(aux[i][0]))
             listay.append(aux[i][1])
         elif flag==2:
-            listay.append(aux[i][1])
+            listax.append(aux[i][0])
             listay.append(aux[i][1])
     return [listax, listay]
 
@@ -467,12 +476,12 @@ def work(idiomas):
     @type  idiomas: list of strings
     @param idiomas: indicates the language version we are processing
     """
-    ##	idiomas=["eswiki","svwiki", "itwiki", "ptwiki", "nlwiki", "plwiki", "dewiki"]
     ##  idiomas=["eswiki"]
     create_dirs(idiomas)
     contributions(idiomas)
     histogram(idiomas)
     summary_evol(idiomas)
     measuring(idiomas)
-    
-##work()
+##idiomas=["eswiki","svwiki", "itwiki", "ptwiki", "nlwiki", "jawiki","plwiki", "frwiki", "dewiki"]
+##idiomas=["frwiki", "dewiki"]
+##work(idiomas)

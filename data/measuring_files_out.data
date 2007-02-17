@@ -1,6 +1,6 @@
-./graphics/eswiki/total_edits_per_author.png
-./graphics/eswiki/total_edits_per_noannon_author.png
-./graphics/eswiki/total_edits_per_annon_author.png
-./graphics/eswiki/diff_authors_per_article_descending.png
-./graphics/eswiki/diff_articles_per_logged_author_descending.png
-./graphics/eswiki/diff_articles_per_anonymous_author_descending.png
+./graphics/mlwiki/total_edits_per_author.png
+./graphics/mlwiki/total_edits_per_noannon_author.png
+./graphics/mlwiki/total_edits_per_annon_author.png
+./graphics/mlwiki/diff_authors_per_article_descending.png
+./graphics/mlwiki/diff_articles_per_logged_author_descending.png
+./graphics/mlwiki/diff_articles_per_anonymous_author_descending.png

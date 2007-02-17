@@ -303,13 +303,13 @@ def __content_evolution(cursor, language="furwiki"):
 	#MEJORA PARA LA VELOCIDAD DE ACCESO
 	####################
 	
-	#dbaccess.dropTab_SQL(cursor, "stats_"+language+"_NS0")
-	#dbaccess.raw_query_SQL(cursor, "CREATE TABLE stats_" + language + "_NS0 " " SELECT rev_id, page_id, page_len,rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0")
+	dbaccess.dropTab_SQL(cursor, "stats_"+language+"_NS0")
+	dbaccess.raw_query_SQL(cursor, "CREATE TABLE stats_" + language + "_NS0 " " SELECT rev_id, page_id, page_len,rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0")
 	
-	#dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD PRIMARY KEY (rev_id)")
-	#dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 MODIFY rev_timestamp DATETIME")
-	#dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX pid (page_id)")
-	#dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX timestamp (rev_timestamp)")
+	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD PRIMARY KEY (rev_id)")
+	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 MODIFY rev_timestamp DATETIME")
+	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX pid (page_id)")
+	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX timestamp (rev_timestamp)")
 	
 	#dbaccess.dropTab_SQL(cursor, "stats_Evolution_Content_weeks_"+language)
 	fecha=dbaccess.query_SQL(cursor,"MIN(rev_timestamp)", "stats_"+language)
@@ -337,27 +337,25 @@ def __content_evolution(cursor, language="furwiki"):
 	fecha=fecha_min
 	fecha+=delta
 	
-	#dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_months_"+language+" ")
+	dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_months_"+language+" ")
 	
 	#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_months_"+language+" ")
 	dbaccess.query_SQL(cursor, "COUNT(DISTINCT rev_user) as authors", "revision", where="rev_user NOT LIKE 0 AND rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_author_months_"+language+" ")
 	while (fecha<=fecha_max):
 		fecha+=delta
 		
-		#dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_months_"+language+" ")
+		dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_months_"+language+" ")
 		dbaccess.query_SQL(cursor, "COUNT(DISTINCT rev_user) as authors", "revision", where="rev_user NOT LIKE 0 AND rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_author_months_"+language+" ")
 		
 		#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_months_"+language+" ")
 	
 	
 	#DISTRIBUCION DE PAGINAS ENTRE LOS DISTINTOS NAMESPACES
-	#dbaccess.dropTab_SQL(cursor, "stats_nspace_"+language)
-	#dbaccess.query_SQL(cursor,"page_namespace as namespace, COUNT(*) as pages_nspace", "page", group="page_namespace", create="stats_nspace_"+language)
+	dbaccess.dropTab_SQL(cursor, "stats_nspace_"+language)
+	dbaccess.query_SQL(cursor,"page_namespace as namespace, COUNT(*) as pages_nspace", "page", group="page_namespace", create="stats_nspace_"+language)
 
 	#TAMAÑO DE PAGINA Y NUMERO DE AUTORES DISTINTOS QUE LA HAN EDITADO
-	
-	#CAMBIAR PARA EL CASO DE QUE UTILICEMOS AUX
-	
+
 	dbaccess.dropTab_SQL(cursor, "stats_pagelen_difauthors_"+language)
 	dbaccess.query_SQL(cursor,"p.page_id, p.page_len, st.theCount as authors", "aux as p, stats_Article_NoAnnons_page_id_"+language+" as st", where="p.page_id=st.page_id", create="stats_pagelen_difauthors_"+language)
 

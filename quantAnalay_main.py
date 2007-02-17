@@ -51,7 +51,7 @@ ListaIdiomas=conf.langs
 print "STARTING DATABASE DUMP DECOMPRESSION...\n"
 for idioma in ListaIdiomas:
 	fichero=dbdump.download_bd(conf,idioma)
-	#fichero=idioma+"-latest-stub-meta-history.xml.gz"
+	fichero=idioma+"-latest-stub-meta-history.xml.gz"
 	dbdump.unzip_bd(conf,fichero,idioma)
 print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
 

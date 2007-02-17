@@ -210,13 +210,7 @@ CREATE TABLE /*$wgDBprefix*/page (
   -- Uncompressed length in bytes of the page's current source text.
   page_len int(8) unsigned NOT NULL,
 
-  PRIMARY KEY page_id (page_id),
-  UNIQUE INDEX name_title (page_namespace,page_title),
-  
-  -- Special-purpose indexes
-  INDEX (page_random),
-  INDEX (page_len)
-
+  PRIMARY KEY page_id (page_id)
 );
 
 --
@@ -258,13 +252,7 @@ CREATE TABLE /*$wgDBprefix*/revision (
   -- Not yet used; reserved for future changes to the deletion system.
   rev_deleted tinyint(1) unsigned NOT NULL default '0',
   
-  PRIMARY KEY rev_page_id (rev_page, rev_id),
-  UNIQUE INDEX rev_id (rev_id),
-  INDEX rev_timestamp (rev_timestamp),
-  INDEX page_timestamp (rev_page,rev_timestamp),
-  INDEX user_timestamp (rev_user,rev_timestamp),
-  INDEX usertext_timestamp (rev_user_text,rev_timestamp)
-
+  PRIMARY KEY rev_page_id (rev_page, rev_id)
 );
 
 
