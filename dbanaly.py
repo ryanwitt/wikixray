@@ -25,364 +25,372 @@ evolution in time for important parameters).
 """
 
 import dbaccess, datetime
-#import gnuplotter
 
-def info_authors(conf, language="furwiki"):
-	"""
-	Método para el tratamiento de datos por usuario
-	"""
-	#Obtener una conexion a la BD que corresponda
-	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
-	
-	#Variables de configuracion locales
-	target="author"
-	intervals=["days", "weeks", "months", "quarters", "years"]
-	
-	############################
-	#NUMERO DE REVISIONES TOTALES POR CADA ID DE AUTOR
-	
-	__total_rev(acceso[1], language, target)
-	
-	############################
-	#NUMERO TOTAL DE ARTÍCULOS DIFERENTES QUE HA REVISADO UN AUTOR
-	
-	__total_rev_per_target(acceso[1], language, target)
-	
-	############################
-	#NUMERO TOTAL DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR
-	#Se considera como comienzo la primera revision de un articulo????
-	__total_article_init_author(acceso[1], language)
-	
-	############################
-	#REVISIONES TOTALES DE CADA ID DE AUTOR PARA VARIOS INTERVALOS ESPECIFICADOS EN INTERVALS
-	
-	for interval in intervals:
-		__total_rev_time(acceso[1], interval,language, target)
-	
-	############################
-	#NUMERO DE ARTÍCULOS DIFERENTES QUE HA REVISADO UN AUTOR, PARA VARIOS INTERVALOS ESPECIFICADOS EN INTERVALS
-	
-	for interval in intervals:
-		__total_rev_per_target_time(acceso[1], interval,language, target)
-	
-	############################
-	#NUMERO DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR, POR MESES SEMANAS Y DIAS (años, trimestres...)
-	#Se considera como comienzo la primera revision de un articulo
-	
-	for interval in intervals:
-		__article_init_author_time(acceso[1], interval,language)
+def fluxCapacitor(conf, language="furwiki"):
+    """
+    Metodo para crear una tabla en la base de datos con la informacion relevante para los analisis
+    Tambien se encarga de convertir los timestamp de las revisiones al tipo DATE de MySQL
+    
+    Finalmente, se encarga de crear las tablas para los resultados intermedios, de manera que luego se 
+    puedan introducir directamente los datos al hacer la query en el metodo correspondiente
+    """
+    ##	Get new DB connection
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+    ##    Delete previous versions of views
+    dbaccess.dropView(acceso[1], "wxrevision_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_ns0_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_articles_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_redirects_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_talk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevison_pageUser_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_userTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_meta_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_metaTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_image_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_imageTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_mediawiki_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_mediawikiTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_template_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_templateTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_help_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_helpTalk_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_category_"+language)
+    dbaccess.dropView(acceso[1], "wxrevision_categoryTalk_"+language)
+    
+##    Create updated versions for views from revision table
+    dbaccess.createView(acceso[1], view="wxrevision_"+language, columns="rev_id, page_id, rev_len, page_ns, page_len, is_redirect, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_namespace, page_len, page_is_redirect, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id")
+    dbaccess.createView(acceso[1], view="wxrevision_ns0_"+language, columns="rev_id, page_id, rev_len, page_len, page_title, is_redirect, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_len, page_title, page_is_redirect, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0")
+    dbaccess.createView(acceso[1], view="wxrevision_articles_"+language, columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0 AND page_is_redirect=0")
+    dbaccess.createView(acceso[1], view="wxrevision_redirects_"+language, columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0 AND page_is_redirect=1")
+    dbaccess.createView(acceso[1], view="wxrevision_talk_"+language, columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=1")
+    nspaces=["pageUser", "userTalk", "meta", "metaTalk", "image", "imageTalk", "mediawiki", "mediawikiTalk", "template", "templateTalk", "help", "helpTalk", "category", "categoryTalk"]
+    for nspace, nsnum in zip(nspaces, range(2,16)):
+        dbaccess.createView(acceso[1], view="wxrevision_"+nspace+"_"+language, columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp", query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace="+str(nsnum))
+    
+    #Distribution of pages among namespaces
+    dbaccess.dropView(cursor, "wxpage_nspaces_"+language)
+    dbaccess.createView(cursor,view="wxpage_nspaces_"+language, columns="namespace, pages_in_nspace", query="SELECT page_namespace, COUNT(*) FROM page GROUP BY page_namespace")
 
-	#Cerramos la base de datos
-	dbaccess.close_Connection(acceso[0])
-		
-def info_articles(conf, language="furwiki"):
-	"""
-	Método para el tratamiento de datos por articulo
-	"""
-	#Obtener una conexion a la BD que corresponda
-	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
-	
-	#Variables de configuracion locales
-	target="page_id"
-	intervals=["days", "weeks", "months", "quarters", "years"]
-	
-	###########################
-	#REVISIONES TOTALES POR CADA ID DE ARTICULO
-	###########################
-	__total_rev(acceso[1], language, target)
-	
-	###########################
-	#NUMERO TOTAL DE AUTORES DISTINTOS QUE HAN REVISADO UN ARTÍCULO
-	__total_rev_per_target(acceso[1], language, target)
-	
-	###########################
-	#REVISIONES TOTALES POR CADA ARTICULO x meses, semanas y dias
-	for interval in intervals:
-		__total_rev_time(acceso[1], interval,language, target)
-	
-	###########################
-	#NUMERO DE AUTORES DISTINTOS QUE HAN REVISADO UN ARTÍCULO x meses, semanas y dias
-	for interval in intervals:
-		__total_rev_per_target_time(acceso[1], interval,language, target)
-	
-	#Cerramos la base de datos
-	dbaccess.close_Connection(acceso[0])
+##    Close DB connection
+    dbaccess.close_Connection(acceso[0])
 
+def generalStatistics(conf, language="furwiki"):
+##    Computes the views containing general statistics and overall information
+##    Get new DB connection
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+##    General statistics for articles
+    __gral_stats(acceso[1], "wxrevision_articles_"+language)
+##    Close DB connection
+    dbaccess.close_Connection(acceso[0])
+    
+def infoAuthors(conf, language="furwiki"):
+    
+    ##	Create data per user
+    
+    ##	Get DB connection
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+    
+    ##	local configuration
+    target="author"
+    ##	intervals might be days, weeks, months, quarters, years
+    intervals=["months", "quarters"]
+    
+    ############################
+    #Number of total revisions per author ID
+    #For table articles
+    __total_rev(acceso[1], "wxrevision_articles_"+language, target)
+    
+    ############################
+    #Different articles edited per user
+    #For table articles
+    __total_rev_diff(acceso[1], "wxrevision_articles_"+language, target)
+    
+    ############################
+    #Total num of articles started per author
+    #We consider the beginning of an article as the first revision of that article
+    #For table articles
+    __total_page_init_author(acceso[1], "wxrevision_articles_"+language)
+    
+    ############################
+    #Total number of revisions per author for several time intervals
+    #Currently, we are only interested in data per month and quarter
+    #For table articles
+    for interval in intervals:
+        __total_rev_time(acceso[1], interval,"wxrevision_articles_"+language, target)
+    
+    ############################
+    #Num of different articles revised per author for several time intervals
+    #For table articles
+    for interval in intervals:
+        __total_rev_diff_time(acceso[1], interval,"wxrevision_articles_"+language, target)
+    
+    ############################
+    #Num of different articles initiated per author
+    #For table articles
+    for interval in intervals:
+        __article_init_author_time(acceso[1], interval,"wxrevision_articles_"+language)
+    
+    #Close DB connection
+    dbaccess.close_Connection(acceso[0])
 
-def info_contents(conf, language="furwiki"):
-	
-	###########################
-	#ANALISIS DEl CONTENIDO
-	###########################
-	##PODEMOS VER LA EVOLUCION DEL TAMAÑO DE LOS ARTICULOS USANDO page.page_len (tam articulo sin comprimir)
-	##Tamaños de contribuciones ¿?
-	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
-	__content_evolution(acceso[1], language)
-	dbaccess.close_Connection(acceso[0])
-	#DATOS POR ARTICULO
+def infoPages(conf, language="furwiki"):
 
-def flux_capacitor(conf, language="furwiki"):
-	"""
-	Metodo para crear una tabla en la base de datos con la informacion relevante para los analisis
-	Tambien se encarga de convertir los timestamp de las revisiones al tipo DATE de MySQL
-	
-	Finalmente, se encarga de crear las tablas para los resultados intermedios, de manera que luego se 
-	puedan introducir directamente los datos al hacer la query en el metodo correspondiente
-	"""
-	#Obtener una conexion a la BD que corresponda
-	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
-	dbaccess.dropTab_SQL(acceso[1], "stats_"+language)
-	dbaccess.raw_query_SQL(acceso[1], "CREATE TABLE stats_" + language + " SELECT rev_id, page_id, page_title, page_namespace, page_len, rev_user AS author, rev_user_text AS author_text, rev_timestamp FROM revision, page WHERE rev_page=page_id")
-	
-	dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE stats_"+language+" MODIFY rev_timestamp DATETIME")
-	dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE stats_"+language+" ADD INDEX timestamp (rev_timestamp)")
-	
-	##TABLAS PARA RESULTADOS INTERMEDIOS
-	#Cerramos la base de datos
-	dbaccess.close_Connection(acceso[0])
+    ##	Data per article
+    
+    ##	Get new DB connection
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+    
+    #Local configuration
+    target="page_id"
+    intervals=["months", "quarters"]
+    
+    ###########################
+    #Total num of revisions per page
+    #For table article
+    ###########################
+    __total_rev(acceso[1], "wxrevision_articles_"+language, target)
+    
+    ###########################
+    #Total number of different editors per page
+    #For table article
+    __total_rev_diff(acceso[1], "wxrevision_articles_"+language, target)
+    
+    ###########################
+    #Total number of revisions per page for several time intervals
+    #Currently, we are only interested in months and quarters
+    #For table articles
+    for interval in intervals:
+        __total_rev_time(acceso[1], interval,"wxrevision_articles_"+language, target)
+    
+    ###########################
+    #Total number of different editors per page; per month and per quarter
+    #For table articles 
+    for interval in intervals:
+        __total_rev_diff_time(acceso[1], interval,"wxrevision_articles_"+language, target)
+    
+    #Close DB connection
+    dbaccess.close_Connection(acceso[0])
 
+def infoContents(conf, language="furwiki"):
+
+    ###########################
+    #Contents analysis
+    ###########################
+    ##Currently supported
+##        Evolution in time of the length of articles (per month; per quarter)
+##        Evolution in time of the lenght of user contributions (per month; per quarter)
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+    ##    For table articles
+    __content_evolution(acceso[1], "wxrevision_articles_"+language)
+    dbaccess.close_Connection(acceso[0])
+
+##############################################################################
 #################################
-#METODOS PRIVADOS DE AUTORES Y ARTICULOS
+#PRIVATE METHODS
 #################################
 
-def __total_rev(cursor, language, target="author"):
-	#target=author Contribuciones por cada usuario sin anonimos
-	#target=article Contribuciones por cada artículo, sin incluir revisores anonimos
-	dbaccess.dropTab_SQL(cursor, "stats_Contrib_NoAnnons_"+target+"_"+language)
-	Total_Contrib_NoAnnons=dbaccess.query_SQL(cursor,target+", count(*) AS theCount","stats_"+language,"page_namespace=0 AND author NOT LIKE '0'","theCount", target, "stats_Contrib_NoAnnons_"+target+"_"+language+" ")
-	#Idem con anonimos integrados
-	dbaccess.dropTab_SQL(cursor, "stats_Contrib_"+target+"_"+language)
-	Total_Contrib=dbaccess.query_SQL(cursor, target+", count(*) AS theCount","stats_"+language, where="page_namespace=0", order="theCount", group=target, create="stats_Contrib_"+target+"_"+language+" ")
+def __total_rev(cursor, table, target="author"):
+##    target=author --> Contributions per logged user, without annons
+##    target=page_id --> Contributions per page, without annons
+    dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_logged")
+    dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_logged", columns=target+", tot_revisions", query="SELECT "+target+", count(*) AS tot_revisions FROM "+table+" WHERE author!=0 GROUP BY "+target+" ORDER BY tot_revisions")
+##        Idem with annons, only per page (it does not worth the effort to calculate it per user, simply sum up the next table)
+    if target=="page_id":
+        dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_all")
+        dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_all", columns=target+", tot_revisions", query="SELECT "+target+", count(*) AS tot_revisions FROM "+table+" GROUP BY "+target+" ORDER BY tot_revisions")
+##        Idem only with annons edits, order by IP address
+    if target == "author":
+        target = "author_text"
+    dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_annons")
+    dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_annons", columns=target+", tot_revisions", query="SELECT "+target+", count(*) AS tot_revisions FROM "+table+" WHERE author=0 GROUP BY "+target+" ORDER BY tot_revisions")
 
-	if target == "author":
-		target = "author_text"
-	#Idem solo anonimos clasificados por IP
-	dbaccess.dropTab_SQL(cursor, "stats_Contrib_Annons_"+target+"_"+language)
-	Total_Contrib_Annons=dbaccess.query_SQL(cursor, target+", count(*) AS theCount","stats_"+language, "page_namespace=0 AND author='0'",order="theCount", group=target, create="stats_Contrib_Annons_"+target+"_"+language+" ")
-	
-	
-def __total_rev_per_target(cursor, language, target="author"):
-	"""
-	target=author Recupera el numero total de articulos diferentes que ha revisado cada autor hasta la fecha actual
-	
-	target=article Recupera el numero total de autores diferentes que ha revisado cada articulo hasta la fecha actual
-	"""
-	if target=="author":
-		field_distinct="page_id"
-	elif target=="page_id":
-		field_distinct="author"
-	dbaccess.dropTab_SQL(cursor, "stats_Article_NoAnnons_"+target+"_"+language)	
-	total_Article_NoAnnons=dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount","stats_"+language,"page_namespace=0 AND author NOT LIKE '0'","theCount", target, "stats_Article_NoAnnons_"+target+"_"+language+" ")
-	
-	dbaccess.dropTab_SQL(cursor, "stats_Article_"+target+"_"+language)
-	total_Article=dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount","stats_"+language, where="page_namespace=0", order="theCount", group=target, create="stats_Article_"+target+"_"+language+" ")
-	
-	if target == "author":
-		target = "author_text"
-	
-	dbaccess.dropTab_SQL(cursor, "stats_Article_Annons_"+target+"_"+language)
-	total_Article_Annons=dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount","stats_"+language,"page_namespace=0 AND author='0'","theCount", target, "stats_Article_Annons_"+target+"_"+language+" ")
-	#print total_Distinct_Article_NoAnnons
+def __total_rev_diff(cursor, table, target="author"):
 
-def __total_article_init_author(cursor, language, target="author"):
-	"""
-	#NUMERO TOTAL DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR en el idioma estudiado
-	#Se considera como comienzo la primera revision de un articulo????
-	"""
-	"""
-	Creacion de una tabla intermedia para almacenamiento de los datos precisos para las queries de esta funcion
-	"""
-	dbaccess.dropTab_SQL(cursor, "stats_Article_Min_Timestamp")
-	min_Timestamp = dbaccess.query_SQL(cursor, "page_id, MIN(rev_timestamp) AS ts", "stats_"+language, where="page_namespace=0",group="page_id", create="stats_Article_Min_Timestamp")
-	
-	dbaccess.dropTab_SQL(cursor, "stats_Article_Init_NoAnnons_"+target+"_"+language)
-	total_Article_Init_NoAnnons= dbaccess.query_SQL(cursor, target+", COUNT(*) AS theCount", "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts AND t1.author NOT LIKE '0'", order="theCount", group=target, create="stats_Article_Init_NoAnnons_"+target+"_"+language+" ")
-	
-	dbaccess.dropTab_SQL(cursor, "stats_Article_Init_"+target+"_"+language)
-	total_Article_Init= dbaccess.query_SQL(cursor, target+", COUNT(*) AS theCount", "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts", order="theCount", group=target, create="stats_Article_Init_"+target+"_"+language+" ")
-	
-	if target == "author":
-		target = "author_text"
-	dbaccess.dropTab_SQL(cursor, "stats_Article_Init_Annons_"+target+"_"+language)
-	total_Article_Init_Annons= dbaccess.query_SQL(cursor, target+", COUNT(*) AS theCount", "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts AND t1.author='0'", order="theCount", group=target, create="stats_Article_Init_Annons_"+target+"_"+language+" ")
-	#print total_Article_Init_NoAnnons
-	
-def __total_rev_time(cursor,interval,language, target="author"):
-	"""
-	target=author Numero total de revisiones realizadas por un autor desglosada en intervalos temporales
-	
-	target=article Numero total de revisiones sufridas por un articulo desglosada en intervalos temporales
-	"""
-	type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
-	type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
-	
-	if interval in type_interval_select:
-		dbaccess.dropTab_SQL(cursor, "stats_Contrib_NoAnnons_"+interval+"_"+target+"_"+language)
-		total_rev_author_time_NoAnnons= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)", "stats_"+language, "page_namespace=0 AND author NOT LIKE '0'", group= target+", " + type_interval_group[interval], create="stats_Contrib_NoAnnons_"+interval+"_"+target+"_"+language+" ")
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Contrib_"+interval+"_"+target+"_"+language)
-		total_rev_author_time= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)", "stats_"+language, where="page_namespace=0",group= target+", " + type_interval_group[interval], create="stats_Contrib_"+interval+"_"+target+"_"+language+" ")
-		
-		if target == "author":
-			target = "author_text"
-		dbaccess.dropTab_SQL(cursor, "stats_Contrib_Annons_"+interval+"_"+target+"_"+language)
-		total_rev_author_time_Annons= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)", "stats_"+language, "page_namespace=0 AND author='0'", group= target+", " + type_interval_group[interval], create="stats_Contrib_Annons_"+interval+"_"+target+"_"+language+" ")
-	else:
-		print "Has escogido un intervalo temporal no soportado"
-	
-def __total_rev_per_target_time(cursor,interval,language, target="author"):
-	"""
-	target = author Recupera el numero total de articulos diferentes que ha revisado cada autor hasta la fecha actual
-	desglosando la info en intervalos temporales
-	
-	target = article Recupera el numero total de autores diferentes que han revisado un artículo hasta la fecha actual,
-	desglosando la info en intervalos temporales
-	"""
-	type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
-	type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
-	
-	if target=="author":
-		field_distinct="page_id"
-	elif target=="page_id":
-		field_distinct="author"
+    ##	target=author Total number of different pages per author
+    ##	target=page_id Total number of different authors per page
+    if target=="author":
+        field_distinct="page_id"
+    elif target=="page_id":
+        field_distinct="author"
+        
+    dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_logged")
+    dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_logged", columns=target+", diff_"+field_distinct, query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+" FROM "+table+" WHERE author!=0 GROUP BY "+target+" ORDER BY diff_"+field_distinct)
+##        Total number of different authors per page (annons included)
+    if target=="page_id":
+        dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_all")
+        dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_all", columns=target+", diff_"+field_distinct, query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+" FROM "+table+" GROUP BY "+target+" ORDER BY diff_"+field_distinct)
+##        target=author Total number of different pages per annon author
+##        target=page_id Total number of different annons per page
+    if target == "author":
+        target = "author_text"
+    dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_annons")
+    dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_annons", columns=target+", diff_"+field_distinct, query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+" FROM "+table+" WHERE author=0 GROUP BY "+target+" ORDER BY diff_"+field_distinct)
 
-	if interval in type_interval_select:
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_NoAnnons_"+interval+"_"+target+"_"+language)
-		article_rev_author_time_NoAnnons= dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount, " + type_interval_select[interval] + " ", "stats_"+language, "page_namespace=0 AND author NOT LIKE '0'", group= target+", " + type_interval_group[interval], create="stats_Article_NoAnnons_"+interval+"_"+target+"_"+language+" ")
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_"+interval+"_"+target+"_"+language)
-		article_rev_author_time= dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount, " + type_interval_select[interval] + " ", "stats_"+language, where="page_namespace=0",group= target+", " + type_interval_group[interval], create="stats_Article_"+interval+"_"+target+"_"+language+" ")
-		
-		if target == "author":
-			target = "author_text"
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_Annons_"+interval+"_"+target+"_"+language)
-		article_rev_author_time_Annons= dbaccess.query_SQL(cursor, target+", COUNT(DISTINCT "+field_distinct+") AS theCount, " + type_interval_select[interval] + " ", "stats_"+language, "page_namespace=0 AND author='0'", group= target+", " + type_interval_group[interval], create="stats_Article_Annons_"+interval+"_"+target+"_"+language+" ")
-	else:
-		print "Has escogido un intervalo temporal no soportado"
+def __total_page_init_author(cursor, table):
+    """
+    Total number of different pages started per author
+    We count the number of different pages a certain author edited for the first time
+    The opposite is useless, since only one author init every article
+    """
+##    Intermidiate view for the minimun timestamp of every page
+    dbaccess.dropView(cursor, table+"_page_min_timestamp_logged")
+    dbaccess.createView(cursor, view=table+"_page_min_timestamp_logged", columns="page_id, rev_id, author, min_timestamp", query="SELECT page_id, author, MIN(rev_timestamp) FROM "+table+" WHERE author!=0 GROUP BY page_id")
+    dbaccess.dropView(cursor, table+"_page_min_timestamp_annons")
+    dbaccess.createView(cursor, view=table+"_page_min_timestamp_annons", columns="page_id, rev_id, author_text, min_timestamp", query="SELECT page_id, author_text, MIN(rev_timestamp) FROM "+table+" WHERE author=0 GROUP BY page_id")
+    
+##    Total number of different pages started by a logged author
+    dbaccess.dropView(cursor, table+"_init_pages_per_author_logged")
+    dbaccess.createView(cursor, view=table+"_init_pages_per_author_logged", columns="author, init_pages", query= "SELECT author, COUNT(DISTINCT page_id) AS init_pages FROM "+table+"_page_min_timestamp_logged WHERE author!=0 GROUP BY author ORDER BY init_pages")
+##    The same for annons
+    dbaccess.dropView(cursor, table+"_init_pages_per_author_annons")
+    dbaccess.createView(cursor, view=table+"_init_pages_per_author_annons", columns="author_text, init_pages", query= "SELECT author_text, COUNT(DISTINCT page_id) AS init_pages FROM "+table+"_page_min_timestamp_annons WHERE author=0 GROUP BY author_text ORDER BY init_pages")
 
-def __article_init_author_time(cursor,interval,language, target="author"):
-	"""
-	#NUMERO TOTAL DE ARTICULOS DIFERENTES QUE HA COMENZADO UN AUTOR en el idioma estudiado
-	#Desglosando la info en intervalos temporales
-	"""
-	
-	"""
-	############################################
-	¡¡¡¡¡WARNING!!!!!!
-	Es necesario llamar con anterioridad al metodo __total_article_init_author puesto que de otro modo no se crea la tabla temporal
-	intermedia para que funcione este metodo
-	############################################
-	"""
-	
-	type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
-	type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
-	
-	if interval in type_interval_select:
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_Init_NoAnnons_"+interval+"_"+target+"_"+language)
-		total_rev_author_time_NoAnnons= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)",  "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts AND t1.author NOT LIKE '0'", group= target+", " + type_interval_group[interval], create="stats_Article_Init_NoAnnons_"+interval+"_"+target+"_"+language+" ")
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_Init_"+interval+"_"+target+"_"+language)
-		total_rev_author_time= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)",  "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts ", group= target+", " + type_interval_group[interval], create="stats_Article_Init_"+interval+"_"+target+"_"+language+" ")
-		
-		if target == "author":
-			target = "author_text"
-		
-		dbaccess.dropTab_SQL(cursor, "stats_Article_Init_Annons_"+interval+"_"+target+"_"+language)
-		total_rev_author_time_Annons= dbaccess.query_SQL(cursor, target+", " + type_interval_select[interval] + ", COUNT(*)",  "stats_"+language+" t1, stats_Article_Min_Timestamp t2", "t1.page_namespace=0 AND t1.page_id=t2.page_id AND t1.rev_timestamp=t2.ts AND author='0'", group= target+", " + type_interval_group[interval], create="stats_Article_Init_Annons_"+interval+"_"+target+"_"+language+" ")
-	else:
-		print "Has escogido un intervalo temporal no soportado"
+def __total_rev_time(cursor,interval,table, target="author"):
+##    target=author Total number of revisions per author in a certain time interval
+##    target=article Total number of revisions per article received in a certain time interval
+    type_interval_columns={"days":"day, year", "weeks":"week, year", "months":"month, year", "quarters":"quarter, year", "years":"year"}
+    type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
+    type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
+    
+    if interval in type_interval_select:
+##        logged users
+        dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_logged_"+interval)
+        dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_logged_"+interval, columns=target+", tot_revisions, "+type_interval_columns[interval], query="SELECT "+target+", count(*) AS tot_revisions, "+type_interval_select[interval]+" FROM "+table+" WHERE author!=0 GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY tot_revisions")
+##        all users per page_id
+        if target=="page_id":
+            dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_all_"+interval)
+            dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_all_"+interval, columns=target+", tot_revisions, "+type_interval_columns[interval], query="SELECT "+target+", count(*) AS tot_revisions, "+type_interval_select[interval]+" FROM "+table+" GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY tot_revisions")
+##        annons
+        if target == "author":
+            target = "author_text"
+        dbaccess.dropView(cursor, table+"_revisions_per_"+target+"_annons_"+interval)
+        dbaccess.createView(cursor, view=table+"_revisions_per_"+target+"_annons_"+interval, columns=target+", tot_revisions, "+type_interval_columns[interval], query="SELECT "+target+", count(*) AS tot_revisions, "+type_interval_select[interval]+" FROM "+table+" WHERE author=0 GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY tot_revisions")
+    else:
+        print "You chose an unsupported time interval.\n"
+        print "Please choose one of the following [days, weeks, moths, quarters, years]\n"
+
+def __total_rev_diff_time(cursor,interval,table, target="author"):
+    """
+    target = author Recupera el numero total de articulos diferentes que ha revisado cada autor hasta la fecha actual
+    desglosando la info en intervalos temporales
+    
+    target = article Recupera el numero total de autores diferentes que han revisado un artículo hasta la fecha actual,
+    desglosando la info en intervalos temporales
+    """
+    type_interval_columns={"days":"day, year", "weeks":"week, year", "months":"month, year", "quarters":"quarter, year", "years":"year"}
+    type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
+    type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
+    
+    if target=="author":
+        field_distinct="page_id"
+    elif target=="page_id":
+        field_distinct="author"
+    
+    if interval in type_interval_select:
+        dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_logged_"+interval)
+        dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_logged_"+interval, columns=target+", diff_"+field_distinct+", "+type_interval_columns[interval], query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+", "+type_interval_select[interval]+" FROM "+table+" WHERE author!=0 GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY diff_"+field_distinct)
+        if target=="page_id":
+            dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_all_"+interval)
+            dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_all_"+interval, columns=target+", diff_"+field_distinct+", "+type_interval_columns[interval], query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+", "+type_interval_select[interval]+" FROM "+table+" GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY diff_"+field_distinct)
+        
+        if target == "author":
+            target = "author_text"
+        dbaccess.dropView(cursor, table+"_diff_"+field_distinct+"_per_"+target+"_annons_"+interval)
+        dbaccess.createView(cursor, view=table+"_diff_"+field_distinct+"_per_"+target+"_annons_"+interval, columns=target+", diff_"+field_distinct+", "+type_interval_columns[interval], query="SELECT "+target+", COUNT (DISTINCT"+field_distinct+") AS diff_"+field_distinct+", "+type_interval_select[interval]+" FROM "+table+" WHERE author=0 GROUP BY "+target+", "+type_interval_group[interval]+" ORDER BY diff_"+field_distinct)
+    else:
+        print "You chose an unsupported time interval.\n"
+        print "Please choose one of the following [days, weeks, moths, quarters, years]\n"
+
+def __total_page_init_author_time(cursor,interval,table):
+    
+    ##	Total number of different articles initiated per author
+    ##	for different time intervals
+    
+    ##############################################
+    ##	¡¡¡¡¡WARNING!!!!!!
+    ##	You must call method __total_page_init_author prior to this method, otherwise 
+    ##	the intermidiate table with min timestamps will not be available
+    ##############################################
+    
+    type_interval_columns={"days":"day, year", "weeks":"week, year", "months":"month, year", "quarters":"quarter, year", "years":"year"}
+    type_interval_select={"days":"DAYOFYEAR(rev_timestamp) AS day, YEAR(rev_timestamp) AS year ", "weeks":"WEEK(rev_timestamp,1) AS week, YEAR(rev_timestamp) AS year ", "months":"MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year ", "quarters":"QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year ", "years":"YEAR(rev_timestamp) AS year "}
+    type_interval_group={"days":"year, day", "weeks":"year, week", "months":"year, month", "quarters":"year, quarter", "years":"year"}
+    
+    if interval in type_interval_select:
+        ##    Total number of different pages started by a logged author
+        dbaccess.dropView(cursor, table+"_init_pages_per_author_logged_"+interval)
+        dbaccess.createView(cursor, view=table+"_init_pages_per_author_logged_"+interval, columns="author, init_pages, "+type_interval_columns[interval], query= "SELECT author, COUNT(DISTINCT page_id) AS init_pages, " +type_interval_select[interval]+" FROM "+table+"_page_min_timestamp_logged WHERE author!=0 GROUP BY author, "+type_interval_group[interval]+" ORDER BY init_pages")
+        ##    The same for annons
+        dbaccess.dropView(cursor, table+"_init_pages_per_author_annons_"+interval)
+        dbaccess.createView(cursor, view=table+"_init_pages_per_author_annons_"+interval, columns="author_text, init_pages, "+type_interval_columns[interval], query= "SELECT author_text, COUNT(DISTINCT page_id) AS init_pages, " +type_interval_select[interval]+" FROM "+table+"_page_min_timestamp_annons WHERE author=0 GROUP BY author_text, "+type_interval_group[interval]+" ORDER BY init_pages")
+    
+    else:
+        print "You chose an unsupported time interval.\n"
+        print "Please choose one of the following [days, weeks, moths, quarters, years]\n"
 
 ###########################################################
 
-def __content_evolution(cursor, language="furwiki"):
-	
-	####################
-	#MEJORA PARA LA VELOCIDAD DE ACCESO
-	####################
-	
-	dbaccess.dropTab_SQL(cursor, "stats_"+language+"_NS0")
-	dbaccess.raw_query_SQL(cursor, "CREATE TABLE stats_" + language + "_NS0 " " SELECT rev_id, page_id, page_len,rev_timestamp FROM revision, page WHERE rev_page=page_id AND page_namespace=0")
-	
-	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD PRIMARY KEY (rev_id)")
-	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 MODIFY rev_timestamp DATETIME")
-	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX pid (page_id)")
-	dbaccess.raw_query_SQL(cursor,"ALTER TABLE stats_"+language+"_NS0 ADD INDEX timestamp (rev_timestamp)")
-	
-	#dbaccess.dropTab_SQL(cursor, "stats_Evolution_Content_weeks_"+language)
-	fecha=dbaccess.query_SQL(cursor,"MIN(rev_timestamp)", "stats_"+language)
-	fecha_min=fecha[0][0]
-	fecha=dbaccess.query_SQL(cursor,"MAX(rev_timestamp)", "stats_"+language)
-	fecha_max=fecha[0][0]
-	
-	#delta=datetime.timedelta(weeks=1)
-	#fecha=fecha_min
-	#fecha+=delta
-	
-	#dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+" stats, aux a", where="stats.page_namespace=0 AND a.page_namespace=0 AND stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_weeks_"+language+" ")
-	
-	#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_weeks_"+language+" ")
-	#while (fecha<=fecha_max):
-		#fecha+=delta
-		
-		#dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+" stats, aux a", where="stats.page_namespace=0 AND a.page_namespace=0 AND stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_weeks_"+language+" ")
-		
-		#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_weeks_"+language+" ")
-	
-	#dbaccess.dropTab_SQL(cursor, "stats_Evolution_Content_months_"+language)
-	dbaccess.dropTab_SQL(cursor, "stats_Evolution_authors_months_"+language)
-	delta=datetime.timedelta(weeks=4)
-	fecha=fecha_min
-	fecha+=delta
-	
-	dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_months_"+language+" ")
-	
-	#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_Content_months_"+language+" ")
-	dbaccess.query_SQL(cursor, "COUNT(DISTINCT rev_user) as authors", "revision", where="rev_user NOT LIKE 0 AND rev_timestamp < '"+fecha.isoformat(' ')+"'", create="stats_Evolution_author_months_"+language+" ")
-	while (fecha<=fecha_max):
-		fecha+=delta
-		
-		dbaccess.query_SQL(cursor,"COUNT(DISTINCT stats.page_id) AS pageCount, SUM(a.page_len) AS pageLenSum, COUNT(stats.rev_id) contribs, MAX(stats.rev_timestamp) AS limitDate","stats_"+language+"_NS0 stats, aux a", where="stats.page_id=a.page_id AND stats.rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_months_"+language+" ")
-		dbaccess.query_SQL(cursor, "COUNT(DISTINCT rev_user) as authors", "revision", where="rev_user NOT LIKE 0 AND rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_author_months_"+language+" ")
-		
-		#dbaccess.query_SQL(cursor,"COUNT(DISTINCT page_id) AS pageCount, SUM(page_len) AS pageLenSum, COUNT(rev_id) contribs, MAX(rev_timestamp) AS limitDate","stats_"+language+"_NS0 ", where="rev_timestamp < '"+fecha.isoformat(' ')+"'", insert="stats_Evolution_Content_months_"+language+" ")
-	
-	
-	#DISTRIBUCION DE PAGINAS ENTRE LOS DISTINTOS NAMESPACES
-	dbaccess.dropTab_SQL(cursor, "stats_nspace_"+language)
-	dbaccess.query_SQL(cursor,"page_namespace as namespace, COUNT(*) as pages_nspace", "page", group="page_namespace", create="stats_nspace_"+language)
+def __content_evolution(cursor, table):
 
-	#TAMAÑO DE PAGINA Y NUMERO DE AUTORES DISTINTOS QUE LA HAN EDITADO
+##    Create some views to make data retrieving and graphics depicting easier
+##    Evolution in time of the page len at the beginning of every month/quarter
+    dbaccess.dropView(cursor, table+"_page_len_evol_months")
+    dbaccess.createView(cursor, view=table+"_revision_page_len_evol_months", columns="page_id, max_rev_id, page_len, month, year", query="SELECT page_id, rev_id, rev_len, MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year FROM "+table+" GROUP BY page_id, year, month")
+    
+    dbaccess.dropView(cursor, table+"_page_len_evol_quarters")
+    dbaccess.createView(cursor, view=table+"_revision_page_len_evol_quarters", columns="page_id, max_rev_id, page_len, quarter, year", query="SELECT page_id, rev_id, rev_len, QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year FROM "+table+" GROUP BY page_id, year, quarter")
+    
+##    Now for revisions. [FIXME-jfelipe] We have to deal with the first revision of each tree.
+##    Still do not know wether in that case rev_parent points to itself (AND cur.rev_parent != cur.rev.id)
+##    or to NULL (AND cur.rev_parent!=NULL). Later, UNION that group with the first revisions group
+##    Must prove it against testbed dump
 
-	dbaccess.dropTab_SQL(cursor, "stats_pagelen_difauthors_"+language)
-	dbaccess.query_SQL(cursor,"p.page_id, p.page_len, st.theCount as authors", "aux as p, stats_Article_NoAnnons_page_id_"+language+" as st", where="p.page_id=st.page_id", create="stats_pagelen_difauthors_"+language)
+##    Length in bytes of every contribution
+    dbaccess.dropView(cursor, table+"_author_contrib_len")
+    dbaccess.createView(cursor, view=table+"_author_contrib_len", columns="author, contrib_len, timestamp", query="SELECT cur.author, (cur.rev_len - prev.rev.len) AS contrib_len, cur.rev_timestamp FROM "+table+" AS cur, "+table+" AS prev where cur.rev_parent=prev.rev_id")
+##    Sum of the length of the contributions for every author; per month
+    dbaccess.dropView(cursor, table+"_author_contrib_len_evol_months")
+    dbaccess.createView(cursor, view=table+"_author_contrib_len_evol_months", columns="author, sum_contrib_len, month, year", query="SELECT author, SUM(contrib_len), MONTH(timestamp), YEAR(timestamp) FROM "+table+"_author_contrib_len_evol_months GROUP BY author, year, month")
+##    The same per year
+    dbaccess.dropView(cursor, table+"_author_contrib_len_evol_quarters")
+    dbaccess.createView(cursor, view=table+"_author_contrib_len_evol_quarters", columns="author, sum_contrib_len, quarter, year", query="SELECT author, SUM(contrib_len), QUARTER(timestamp), YEAR(timestamp) FROM "+table+"_author_contrib_len_evol_months GROUP BY author, year, quarter")
 
-def test_funciones(conf, language="furwiki"):
-	acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
-	"""
-	targets=["page_id"]
-	for target in targets:
-		__total_rev(acceso[1], language, target)
-		__total_rev_per_target(acceso[1], language, target)
-		__total_rev_time(acceso[1],"years",language, target)
-		__total_rev_per_target_time(acceso[1],"years",language, target)
-	__total_article_init_author(acceso[1], language)
-	__article_init_author_time(acceso[1],"years",language)
-	"""	
-		#__article_rev_author_time(acceso[1], "years", language)
-	#__total_rev_time(acceso[1],"months",language, "page_id")
-	#__total_article_init_author(acceso[1], language, target="author")
-	__content_evolution(acceso[1], language)
-	dbaccess.close_Connection(acceso[0])
-"""
-####################
-#Escritura de datos a un archivo
-####################
-myfile = open('archivo.txt', 'w')
-for row in TotalContrib_NoAnnons:
-	myfile.write("%d\t%d\n"%(row[0],row[1]))
-myfile.close()
-####################
-"""
+def __gral_stats(cursor, table):
+
+##    WARNING!!!!!!!!!!!!!!!!!!!!!!
+##    YOU MUST CALL __content_evolution before calling this method
+##    in order to create appropiate views for statistics about contents size
+
+##    Total num of pages, total number of contribs, total num of users who made at least 1 edit; per month
+    dbaccess.dropView(cursor, table+"_overall_statistics1_months")
+    dbaccess.createView(cursor, view=table+"_overall_statistics1_months", columns="month, year, page_count, tot_contribs, alive_users", query="SELECT MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year, COUNT(DISTINCT page_id), COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month")
+    
+##    Total size of pages that have been edited at least once in that month; per month
+    dbaccess.dropView(cursor, table+"_overall_statistics2_months")
+    dbaccess.createView(cursor, view=table+"_overall_statistics2_months", columns="month, year, page_Len_Sum", query="SELECT MONTH(rev_timestamp) as month, YEAR(rev_timestamp) AS year, SUM(page_len) FROM "+table+"_revision_page_len_evol_months GROUP BY year, month")
+    
+##    Total size of contribs; per month
+    dbaccess.dropView(cursor, table+"_overall_statistics3_months")
+    dbaccess.createView(cursor, view=table+"_overall_statistics3_months", columns="month, year, tot_contribs_len", query="SELECT MONTH(rev_timestamp) as month, YEAR(rev_timestamp) AS year, SUM(sum_contrib_len) FROM "+table+"_author_contrib_len_evol_months GROUP BY year, month")
+    
+    #Size of pages and number of different authors who have edited them
+    dbaccess.dropView(cursor, table+"_stats_pagelen_difauthors")
+    dbaccess.createView(cursor, view=table+"_stats_pagelen_difauthors", columns="page_id, page_len, diff_authors", query="SELECT p.page_id, p.page_len, t.diff_author FROM page as p, "+table+"_diff_"+field_distinct+"_per_"+target+"_all AS t WHERE p.page_id=t.page_id")
+    
+def test_funciones(conf, language="nlwiki"):
+    acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))
+    __total_rev(acceso[1], table="stats_nlwiki", target="author")
+    ##	targets=["page_id"]
+    ##	for target in targets:
+    ##		__total_rev(acceso[1], language, target)
+    ##		__total_rev_per_target(acceso[1], language, target)
+    ##		__total_rev_time(acceso[1],"years",language, target)
+    ##		__total_rev_per_target_time(acceso[1],"years",language, target)
+    ##	__total_article_init_author(acceso[1], language)
+    ##	__article_init_author_time(acceso[1],"years",language)
+    
+    ##    __article_rev_author_time(acceso[1], "years", language)
+    ##	__total_rev_time(acceso[1],"months",language, "page_id")
+    ##	__total_article_init_author(acceso[1], language, target="author")
+    ##	__content_evolution(acceso[1], language)
+    dbaccess.close_Connection(acceso[0])

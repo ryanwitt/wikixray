@@ -103,14 +103,13 @@ def query_SQL(cursor, select, tables, where='', order='', group='',create='', in
 		query = "SELECT " + select + " FROM " + tables + " WHERE " + where
 	else:
 		query = "SELECT " + select + " FROM " + tables
-	print "\n\n"+query+"\n\n"
+	##print "\n\n"+query+"\n\n"
 
 	# Make SQL string and execute it
 	cursor.execute(query)
 
 	# Fetch all results from the cursor into a sequence and close the connection
 	results = cursor.fetchall()
-	
 	return results
 	
 def raw_query_SQL(cursor, query):
@@ -128,7 +127,21 @@ def createDB_SQL(cursor,language):
 def dropTab_SQL(cursor,tab):
 	query = "DROP TABLE IF EXISTS "+tab
 	cursor.execute(query)
-	
+
+def createView(cursor, view="test_view", columns='', query=''):
+    if columns:
+        view_query="CREATE OR REPLACE VIEW "+view+" ("+columns+") AS "+query
+        print "\n\n"+view_query+"\n\n"
+        cursor.execute(view_query)
+    else:
+        view_query="CREATE OR REPLACE VIEW "+view+" AS "+query
+        print "\n\n"+view_query+"\n\n"
+        cursor.execute(view_query)
+
+def dropView(cursor, view="test_view"):
+    query = "DROP VIEW IF EXISTS "+view
+    cursor.execute(query)
+
 def close_Connection (con):
 	#Cerramos conexion a BDatos	
 	con.close()

@@ -23,6 +23,8 @@ Some tests for the dbanaly.py module
 @contact:      jfelipe@gsyc.escet.urjc.es
 """
 import dbanaly
+import qA_conf as q
 
+conf=q.qA_conf()
 #Prueba de la herramienta de informacion sobre revisores
-dbanaly.test_funciones()
+dbanaly.test_funciones(conf)
