@@ -54,7 +54,10 @@ class dump(object):
         #patterns for files
         #http://download.wikimedia.org/furwiki/20060921/furwiki-20060921-pages-meta-history.xml.7z
         #http://download.wikimedia.org/amwiki/20061014/amwiki-20061014-stub-meta-history.xml.gz
-        
+        #Create /dumps directory if it does not exist yet
+        directories=os.listdir("./")
+        if ("dumps" not in directories):
+            os.makedirs("./dumps")
         ## Initialize DB in MySQL: create DB and tables definitions
         print "Initializing DB for --> "+ self.language +"\n"
         #Retrieving connection and cursor to access the DB
