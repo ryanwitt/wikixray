@@ -40,40 +40,40 @@ STEPS
 	
 3. Call the graphics module to generate charts, plots and statistical results for each language version
 """
-
-#Take config form file
-conf=q.qA_conf()
-
-#Lista de idiomas que queremos analizar
-ListaIdiomas=conf.langs
-#ListaIdiomas=["eswiki", "plwiki"]
-
-print "STARTING DATABASE DUMP DECOMPRESSION...\n"
-for idioma in ListaIdiomas:
-	fichero=dbdump.download_bd(conf,idioma)
-	fichero=idioma+"-latest-stub-meta-history.xml.gz"
-	dbdump.unzip_bd(conf,fichero,idioma)
-print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
-
-print "INITIATING DATABASE ANALYSIS...\n"
+if __name__ == '__main__':
+    #Take config form file
+    conf=q.qA_conf()
     
-for idioma in ListaIdiomas:
-    print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-    dbanaly.flux_capacitor(conf,idioma)
-    print "INITIATING AUTHOR ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-    dbanaly.info_authors(conf,idioma)
-    print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-    print "INITIATING ARTICLE ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-    dbanaly.info_articles(conf,idioma)
-    print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-    print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-    dbanaly.info_contents(conf,idioma)
-    print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+    #Lista de idiomas que queremos analizar
+    ListaIdiomas=conf.langs
+    #ListaIdiomas=["eswiki", "plwiki"]
     
-print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
-graphics.work(ListaIdiomas)
-print "GRAPHICS AND STATISTICAL RESULTS GENERATED FOR LANGUAGE VERSION " + idioma + "\n\n"
+    print "STARTING DATABASE DUMP DECOMPRESSION...\n"
+    for idioma in ListaIdiomas:
+        dump=dump(idioma,conf.msqlu, conf.msqlp)
+        dump.download_bd()
+        dump.unzip_bd()
+    print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
     
-print "DATABASE ANALYSIS COMPLETED...\n"
-print "END OF SCRIPT EXECUTION. GOOD LUCK WITH RESULTS INTERPRETATION.\n"
-
+    print "INITIATING DATABASE ANALYSIS...\n"
+        
+    for idioma in ListaIdiomas:
+        print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.fluxCapacitor(conf,idioma)
+        print "INITIATING AUTHOR ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoAuthors(conf,idioma)
+        print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "INITIATING ARTICLE ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoArticles(conf,idioma)
+        print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoContents(conf,idioma)
+        print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        
+    print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
+    graphics.work(ListaIdiomas)
+    print "GRAPHICS AND STATISTICAL RESULTS GENERATED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        
+    print "DATABASE ANALYSIS COMPLETED...\n"
+    print "END OF SCRIPT EXECUTION. GOOD LUCK WITH RESULTS INTERPRETATION.\n"
+    
