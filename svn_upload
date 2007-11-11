@@ -1,4 +1,0 @@
-#!/bin/bash
-export SVN_SSH="ssh -l gfenix"
-svn -m "First project export" import \
-svn+ssh://svn.berlios.de/svnroot/repos/wikixray/trunk
