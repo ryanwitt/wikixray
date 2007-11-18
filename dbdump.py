@@ -28,6 +28,7 @@ analysis process.
 """
 
 import os, datetime, dbaccess
+import qA_conf as q
 
 class dump(object):
     """
