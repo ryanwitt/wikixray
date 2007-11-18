@@ -3,4 +3,4 @@ mwdumper_path=../mwdumper.jar
 mysql_user=pepito
 mysql_pass=fenix
 langs=dawiki skwiki idwiki slwiki srwiki bgwiki ltwiki rowiki trwiki etwiki hrwiki
-dump_type=dump_stub
+dump_type=research

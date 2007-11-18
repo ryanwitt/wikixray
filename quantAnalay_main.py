@@ -64,7 +64,7 @@ if __name__ == '__main__':
         dbanaly.infoAuthors(conf,idioma)
         print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
         print "INITIATING ARTICLE ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoArticles(conf,idioma)
+        dbanaly.infoPages(conf,idioma)
         print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
         print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
         dbanaly.infoContents(conf,idioma)
