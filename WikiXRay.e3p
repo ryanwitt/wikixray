@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project WikiXRay -->
-<!-- Saved: 2007-01-14, 20:02:00 -->
+<!-- Saved: 2007-11-14, 01:10:11 -->
 <!-- Copyright (C) 2007 Felipe Ortega, glimmer_phoenix@yahoo.es -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -15,15 +15,6 @@
       <Name>quantAnalay_main.py</Name>
     </Source>
     <Source>
-      <Name>graphics_old.py</Name>
-    </Source>
-    <Source>
-      <Name>dbdump.py</Name>
-    </Source>
-    <Source>
-      <Name>dbanaly.py</Name>
-    </Source>
-    <Source>
       <Name>qA_conf.py</Name>
     </Source>
     <Source>
@@ -33,16 +24,31 @@
       <Name>dbaccess.py</Name>
     </Source>
     <Source>
-      <Name>graphics.py</Name>
-    </Source>
-    <Source>
       <Name>test_dbanaly.py</Name>
     </Source>
     <Source>
-      <Name>dbdump_bak.py</Name>
+      <Name>test_admins.py</Name>
     </Source>
     <Source>
-      <Name>dbdump_old.py</Name>
+      <Name>dbanaly.py</Name>
+    </Source>
+    <Source>
+      <Name>dbdump.py</Name>
+    </Source>
+    <Source>
+      <Name>graphics.py</Name>
+    </Source>
+    <Source>
+      <Name>dump_sax.py</Name>
+    </Source>
+    <Source>
+      <Name>dump_sax_research.py</Name>
+    </Source>
+    <Source>
+      <Name>performer.py</Name>
+    </Source>
+    <Source>
+      <Name>launcher.py</Name>
     </Source>
   </Sources>
   <Forms>
@@ -63,7 +69,7 @@
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
     <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
   </FiletypeAssociations>
 </Project>
