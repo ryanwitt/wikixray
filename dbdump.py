@@ -44,7 +44,6 @@ class dump(object):
         self.filename=""        #dump's filename in Wikimedia's server
         if (msqlu=="" or msqlp==""):
             print "Error initializing DB dump object. You must provide a valid MySQL username and password"
-            return -1
         else:
             self.msqlu=msqlu   #MySQL username for accessing and editing the DB
             self.msqlp=msqlp   #MySQL password

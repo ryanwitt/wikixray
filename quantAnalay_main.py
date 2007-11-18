@@ -23,7 +23,7 @@ Main module of WikiXRay, responsible for calling the other functional modules.
 @contact:      jfelipe@gsyc.escet.urjc.es
 """
 
-import dbdump
+import dbdump, dbanaly, graphics
 import dbanaly
 import qA_conf as q
 import graphics
@@ -45,35 +45,35 @@ if __name__ == '__main__':
     conf=q.qA_conf()
     
     #Lista de idiomas que queremos analizar
-    ListaIdiomas=conf.langs
-    #ListaIdiomas=["eswiki", "plwiki"]
+    #ListaIdiomas=conf.langs
+    ListaIdiomas=["furwiki"]
     
-    print "STARTING DATABASE DUMP DECOMPRESSION...\n"
-    for idioma in ListaIdiomas:
-        dump=dump(idioma,conf.msqlu, conf.msqlp)
-        dump.download_bd()
-        dump.unzip_bd()
-    print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
+##    print "STARTING DATABASE DUMP DECOMPRESSION...\n"
+##    for idioma in ListaIdiomas:
+##        dump=dbdump.dump(language=idioma,msqlu=conf.msqlu, msqlp=conf.msqlp)
+##        dump.download_bd()
+##        dump.unzip_bd()
+##    print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
     
     print "INITIATING DATABASE ANALYSIS...\n"
         
     for idioma in ListaIdiomas:
         print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.fluxCapacitor(conf,idioma)
-        print "INITIATING AUTHOR ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoAuthors(conf,idioma)
-        print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        print "INITIATING ARTICLE ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoPages(conf,idioma)
-        print "AUTHOR ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoContents(conf,idioma)
-        print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly=dbanaly.dbanaly(conf,idioma)
+        print "AUTHOR ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoAuthors()
+        print "AUTHOR ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "ARTICLE ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoPages()
+        print "ARTICLE ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        dbanaly.infoContents(conf,idioma)
+##        print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
         
-    print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
-    graphics.work(ListaIdiomas)
-    print "GRAPHICS AND STATISTICAL RESULTS GENERATED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        
-    print "DATABASE ANALYSIS COMPLETED...\n"
+##    print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
+##    graphics.work(ListaIdiomas)
+##    print "GRAPHICS AND STATISTICAL RESULTS GENERATED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        
+##    print "DATABASE ANALYSIS COMPLETED...\n"
     print "END OF SCRIPT EXECUTION. GOOD LUCK WITH RESULTS INTERPRETATION.\n"
     
