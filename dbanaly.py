@@ -12,8 +12,9 @@
 # Author: Jose Felipe Ortega Soto                                                             
 
 """
-Creates additional database tables with relevant quantitative data (including
-evolution in time for important parameters).
+Creates additional database views,  
+creating an adequate interface to access relevant quantitative data (including
+evolution in time of important parameters).
 
 @see: quantAnalay_main
 
@@ -28,11 +29,9 @@ import dbaccess, datetime
 
 def fluxCapacitor(conf, language="furwiki"):
     """
-    Metodo para crear una tabla en la base de datos con la informacion relevante para los analisis
-    Tambien se encarga de convertir los timestamp de las revisiones al tipo DATE de MySQL
-    
-    Finalmente, se encarga de crear las tablas para los resultados intermedios, de manera que luego se 
-    puedan introducir directamente los datos al hacer la query en el metodo correspondiente
+    Method creating multiple views to create a convenient interface to access quantitative data
+    It also generates necessary tables and views to store intermidiate results, so that other methods
+    can later store data directly. 
     """
     ##	Get new DB connection
     acceso = dbaccess.get_Connection("localhost", 3306, conf.msqlu, conf.msqlp, language+conf.dumptype.lstrip("dump"))

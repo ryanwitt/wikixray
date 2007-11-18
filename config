@@ -1,6 +1,6 @@
 java_path=/usr/lib/jvm/java-1.5.0-sun/bin/java
 mwdumper_path=../mwdumper.jar
-mysql_user=root
-mysql_pass=phoenix
+mysql_user=pepito
+mysql_pass=fenix
 langs=dawiki skwiki idwiki slwiki srwiki bgwiki ltwiki rowiki trwiki etwiki hrwiki
 dump_type=dump_stub

@@ -151,7 +151,8 @@ class dump(object):
         print "Let's go on... Cross your fingers... ;-) \n\n\n"
 
 if __name__ == '__main__':
-    foobar=dump(dumptype="standard",msqlu="root", msqlp="phoenix")
+    conf=q.qA_conf()
+    foobar=dump(dumptype="standard",msqlu=conf.msqlu, msqlp=conf.msqlp)
     foobar.download_bd()
     foobar.unzip_bd()
 
