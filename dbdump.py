@@ -12,7 +12,7 @@
 # Author: Jose Felipe Ortega Soto                                                             
 
 """
-Module for downloading database dump of any of the langauge editions we want to 
+Module for downloading database dump of any of the language editions we want to 
 analyze. Once downloaded in 7zip format (storage optimization), we decompress the
 dump to a local MySQL database.
 This way, we have prepared the database for the next steps in the quantitative
@@ -27,7 +27,7 @@ analysis process.
 @contact:      jfelipe@gsyc.escet.urjc.es
 """
 
-import os, datetime, dbaccess
+import os, datetime, string, dbaccess
 import qA_conf as q
 
 class dump(object):
@@ -41,7 +41,15 @@ class dump(object):
         """
         self.language=language       #language to download
         self.dumptype=dumptype      #type of dump      
-        self.filename=""        #dump's filename in Wikimedia's server
+        self.files=["pages-meta-history.xml.7z", "redirect.sql.gz","page_restrictions.sql.gz",\
+        "user_groups.sql.gz", "logging.sql.gz", "interwiki.sql.gz", "langlinks.sql.gz", "externallinks.sql.gz",\
+        "templatelinks.sql.gz", "imagelinks.sql.gz", "categorylinks.sql.gz", "pagelinks.sql.gz", "oldimage.sql.gz",\
+        "image.sql.gz", "sitestats.sql.gz"]
+        self.filename=""
+        self.filenameTemplate=string.Template("""$language-latest-$file""") #dump's filename in Wikimedia's server
+        #URL to download the file
+        self.urld=""
+        self.urldTemplate=string.Template("""http://download.wikimedia.org/$language/latest/$language-latest-$file""")
         if (msqlu=="" or msqlp==""):
             print "Error initializing DB dump object. You must provide a valid MySQL username and password"
         else:
@@ -49,8 +57,8 @@ class dump(object):
             self.msqlp=msqlp   #MySQL password
         #We can manage two different types of dumps, stubs (without the text of every revision) and pages
         #(containing the text of every revision)
-        self.urld="http://download.wikimedia.org/"+self.language+"/latest/"+\
-        self.language+"-latest-pages-meta-history.xml.7z"  #File to download
+        #self.urld="http://download.wikimedia.org/"+self.language+"/latest/"+\
+        #self.language+"-latest-pages-meta-history.xml.7z"  #File to download
         #patterns for files
         #http://download.wikimedia.org/furwiki/20060921/furwiki-20060921-pages-meta-history.xml.7z
         #http://download.wikimedia.org/amwiki/20061014/amwiki-20061014-stub-meta-history.xml.gz
@@ -82,54 +90,75 @@ class dump(object):
             print "Error! There was a problem initializing definitions for DB tables"
             dbaccess.close_Connection(acceso[0])
             
-    def download_bd (self):
+    def download (self):
         """
         Downloads the necessary dump files from http://download.wikimedia.org
         """
         # Arguments are the self.language and dump type to download
         # This method uses wget to discover the most up to date version for that type of dump in that language edition
-        print "Trying to recover dump file... "+self.urld+"\n"
-        success=os.system("wget -P dumps -o log_"+self.language+" --ignore-length "+self.urld)
-        if success== 0:
-            print "File successfully downloaded..."
-            self.filename=self.language+"-latest-pages-meta-history.xml.7z"
-            return success
-        else:
-            # Error retrieving main dump
-            print "There was an error recovering the main dump for the "+self.language+" language edition"
-            print "Most probably, the dump does not exist. Check on http://download.wikimedia.org."
-            return -1
+        for item in self.files:
+            self.urld=self.urldTemplate.safe_substitute(language=self.language, file=item)
+            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=item)
+            print "Trying to recover "+self.urld+"...\n"
+            success=os.system("wget -P dumps -o log_"+self.language+" --ignore-length "+self.urld)
+            if success== 0:
+                print "File "+self.filename+" successfully downloaded..."
+            else:
+                # Error retrieving dump
+                print "There was an error recovering the file "+self.filename
+                print "Most probably, the file or dump page does not exist. Check it on http://download.wikimedia.org."
+                return -1
+        return success
     
-    def unzip_bd (self):
+    def decompress (self):
         """
         Decompress the DB dumps into MySQL
         """	
         if self.dumptype=="research":
-            #Then we call our parser "dump_sax_research.py"to load data into MySQL
-            command_7z="7za e -so dumps/"+self.filename+ " | "+"python dump_sax_research.py "+\
-            "-u "+self.msqlu+" -p "+self.msqlp+" -d "+"wx_"+self.language+"_"+self.dumptype
-            success=os.system(command_7z)
-            if success == 0:
-                print "DB "+"wx_"+self.language+\
-                self.dumptype+" successfully decompressed...\n\n"
-            else:
-                print "Error! There was an error trying to decompress database --> "+\
-                "wx_"+self.language+self.dumptype
-                
+            program="dump_sax_research.py"
         elif self.dumptype=="standard":
-            print("Initiating decompression and parsing...")
-            command_7z="7za e -so dumps/"+self.filename+ " | "+"python dump_sax.py "+\
-            "-u "+self.msqlu+" -p "+self.msqlp+" -d "+"wx_"+self.language+"_"+self.dumptype
-            succ=os.system(command_7z)
-            if succ == 0:
-                print "DB --> "+"wx_"+self.language+self.dumptype+\
-                " successfully decompressed\n\n"
-            else:
-                print "Error! There was an error decompressing DB ... "+\
-                "wx_"+self.language+self.dumptype
+            program="dump_sax.py"
         else:
             print "Error! Unexpected type of dump received"
-            
+            return -1
+        self.filename=self.filenameTemplate.safe_substitute(language=self.language,file=self.files[0])
+        #Then we call our parser "dump_sax_research.py" to load data into MySQL
+        command_7z="7za e -so dumps/"+self.filename+" | "+"python "+program+\
+        " -u "+self.msqlu+" -p "+self.msqlp+" -d "+"wx_"+self.language+"_"+self.dumptype
+        success=os.system(command_7z)
+        if success == 0:
+            print "DB "+"wx_"+self.language+\
+            self.dumptype+" successfully decompressed...\n\n"
+        else:
+            print "Error! There was an error trying to decompress database --> "+\
+            "wx_"+self.language+self.dumptype
+            return -1
+        #Loading into MySQL other interesting tables directly provided in SQL format
+        #SQL code to generate the tables is embedded in the SQL file itself
+        for index in range(1,len(self.files)):
+            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=self.files[index])
+            command_gzip="gzip -d dumps/"+self.filename
+            command_mysql="mysql -u "+self.msqlu+" -p"+self.msqlp+\
+            " wx_"+self.language+"_"+self.dumptype+\
+            " < dumps/"+self.filename.strip(".gz")
+            command_comp="gzip dumps/"+self.filename.strip(".gz")
+            print "Decompressing "+self.filename+"..."
+            success=os.system(command_gzip)
+            if success==0:
+                print "Loading "+self.filename.strip(".gz")+" into MySQL database..."
+                success=os.system(command_mysql)
+                if success==0:
+                    print "Compressing again "+self.filename.strip(".gz")+"..."
+                    success=os.system(command_comp)
+                    if success!=0:
+                        print "Error compressing again "+self.filename.strip(".gz")
+                        return -1
+                else:
+                    print "Error loading "+self.filename.strip(".gz")
+                    return -1
+            else:
+                print "Error decompressing "+self.filename
+                return -1
         print "Generating indexes for tables page and revision...\n"
         print "Depending on the dump size this may take a while...\n"
         acceso = dbaccess.get_Connection("localhost", 3306, self.msqlu,\
@@ -149,10 +178,11 @@ class dump(object):
         dbaccess.close_Connection(acceso[0])
         print "Database ready for quantitative analysis...\n"
         print "Let's go on... Cross your fingers... ;-) \n\n\n"
+        return success
 
 if __name__ == '__main__':
     conf=q.qA_conf()
     foobar=dump(dumptype="standard",msqlu=conf.msqlu, msqlp=conf.msqlp)
-    foobar.download_bd()
-    foobar.unzip_bd()
+    foobar.download()
+    foobar.decompress()
 

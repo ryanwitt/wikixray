@@ -62,11 +62,11 @@ CREATE TABLE /*$wgDBprefix*/revision (
   rev_timestamp binary(19) NOT NULL default '',
   
   -- Uncompressed length in bytes of the revision's current source text.
-  rev_len int unsigned NOT NULL,
+  rev_len int NOT NULL,
   -- Number of letters of the revision's current source text.
-  rev_letters int unsigned NOT NULL,
+  rev_letters int NOT NULL,
   -- Number of words of the revision's current source text.
-  rev_words int unsigned NOT NULL,
+  rev_words int NOT NULL,
   -- Key to revision.rev_id
   -- This field is used to add support for a tree structure (The Adjacency List Model)
   rev_parent_id int unsigned default NULL,

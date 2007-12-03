@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2007-11-18, 11:32:07 -->
+<!-- Saved: 2007-12-03, 01:17:27 -->
 <Tasks version="3.8">
   <Task priority="1" completed="1" bugfix="0">
     <Description>Volver a ejecutar generations para sacar graphs en log10</Description>
@@ -29,22 +29,22 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Print report status to log file</Description>
-    <Created>2007-11-11, 17:51:16</Created>
-    <Resource>
-      <Filename>
-        <Name>dump_sax.py</Name>
-      </Filename>
-      <Linenumber>253</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO: Print report status to log file</Description>
     <Created>2007-11-11, 17:53:19</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
       </Filename>
       <Linenumber>209</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Print report status to log file</Description>
+    <Created>2007-11-22, 11:30:16</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax.py</Name>
+      </Filename>
+      <Linenumber>253</Linenumber>
     </Resource>
   </Task>
 </Tasks>
