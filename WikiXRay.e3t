@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2007-12-03, 01:17:27 -->
+<!-- Saved: 2007-12-04, 23:32:27 -->
 <Tasks version="3.8">
   <Task priority="1" completed="1" bugfix="0">
     <Description>Volver a ejecutar generations para sacar graphs en log10</Description>
@@ -45,6 +45,16 @@
         <Name>dump_sax.py</Name>
       </Filename>
       <Linenumber>253</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Revise the following tables to see wheter they are necessary or not</Description>
+    <Created>2007-12-04, 23:32:24</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>503</Linenumber>
     </Resource>
   </Task>
 </Tasks>

@@ -412,20 +412,51 @@ class dbanaly(object):
     def __content_evolution(self,cursor, table):
     ##    Create some views to make data retrieving and graphics depicting easier
     ##    Evolution in time of the page len at the beginning of every month/quarter
-    #WARNING! It only presents info for every page with AT LEAST ONE REVISION in that month/quarter
+        dbaccess.dropView(cursor,table+"_list_months")
+        dbaccess.createView(cursor,view=table+"_list_months",\
+        columns="month, year",query="SELECT MONTH(rev_timestamp) as month, YEAR(rev_timestamp) as year"+\
+        " FROM "+table+" GROUP BY year, month ORDER BY year, month")
+        
+        dbaccess.dropView(cursor,table+"_list_quarters")
+        dbaccess.createView(cursor,view=table+"_list_quarters",\
+        columns="quarter, year",query="SELECT QUARTER(rev_timestamp) as quarter, YEAR(rev_timestamp) as year"+\
+        " FROM "+table+" GROUP BY year, quarter ORDER BY year, quarter")
+        
+        dbaccess.dropView(cursor, table+"_page_temp_months")
+        dbaccess.createView(cursor, view=table+"_page_temp_months",\
+        columns="page_id, rev_id, rev_len, month, year", query="SELECT page_id, rev_id, rev_len,"+\
+        " MONTH(rev_timestamp), YEAR(rev_timestamp) FROM "+table)
+        
+        dbaccess.dropView(cursor, table+"_page_temp_quarters")
+        dbaccess.createView(cursor, view=table+"_page_temp_quarters",\
+        columns="page_id, rev_id, rev_len, quarter, year", query="SELECT page_id, rev_id, rev_len,"+\
+        " QUARTER(rev_timestamp), YEAR(rev_timestamp) FROM "+table)
+        
+        dbaccess.dropView(cursor, table+"_page_len_per_month")
+        dbaccess.createView(cursor, view=table+"_page_len_per_month",\
+        columns="page_id, max_rev_id, rev_len, amonth, ayear, bmonth, byear",\
+        query="SELECT page_id, max(rev_id), rev_len, a.month, a.year, b.month, b.year"+\
+        " FROM "+table+"_page_temp_months"+" AS a, "+table+"_list_months"+" AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
+        " GROUP BY b.year, b.month, page_id")
+        
         dbaccess.dropView(cursor, table+"_page_len_evol_months")
         dbaccess.createView(cursor, view=table+"_page_len_evol_months",\
-        columns="page_id, max_rev_id, page_len, month, year",query="SELECT page_id, rev_id, rev_len,"+\
-        " MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year FROM "+table+\
-        " GROUP BY page_id, year, month")
+        columns="month, year, page_len_sum",query="SELECT bmonth, byear, SUM(rev_len) FROM "+\
+        table+"_page_len_per_month GROUP BY byear, bmonth")
+        
+        dbaccess.dropView(cursor, table+"_page_len_per_quarter")
+        dbaccess.createView(cursor, table+"_page_len_per_quarter",\
+        columns="page_id, max_rev_id, rev_len, aquarter, ayear, bquarter, byear",\
+        query="SELECT page_id, max(rev_id), rev_len, a.quarter, a.year, b.quarter, b.year"+\
+        " FROM "+table+"_page_temp_quarters"+" AS a, "+table+"_list_quarters"+" AS b WHERE(a.quarter<=b.quarter) AND (a.year<=b.year)"+\
+        " GROUP BY b.year, b.quarter, page_id")
         
         dbaccess.dropView(cursor, table+"_page_len_evol_quarters")
         dbaccess.createView(cursor, view=table+"_page_len_evol_quarters",\
-        columns="page_id, max_rev_id, page_len, quarter, year", query="SELECT page_id, rev_id, rev_len,"+\
-        " QUARTER(rev_timestamp) AS quarter, YEAR(rev_timestamp) AS year FROM "+table+\
-        " GROUP BY page_id, year, quarter")
+        columns="quarter, year, page_len_sum",query="SELECT bquarter, byear, SUM(rev_len) FROM "+\
+        table+"_page_len_per_quarter GROUP BY byear, bquarter")
         
-    ##    Now for revisions. [FIXME-jfelipe] We have to deal with the first revision of each tree.
+    ##    Now for revisions. We have to deal with the first revision of each tree.
     ##    In the first revision of every page, rev_parent==NULL. 
     ##    Later, UNION that group with the first revisions group //Must prove it against testbed dump
     
@@ -469,7 +500,7 @@ class dbanaly(object):
         " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month")
         ###########################################
         #ALFA-ZONE
-        pass
+        #TODO: Revise the following tables to see wheter they are necessary or not
         ##    Total size of pages that have been edited at least once in that month; per month
         dbaccess.dropView(cursor, table+"_overall_statistics2_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics2_months",\
