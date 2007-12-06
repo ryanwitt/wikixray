@@ -37,8 +37,8 @@ class dbanaly(object):
         self.conf=conf
         self.language=language
         ##List of namespaces to analyse. We have added new special namespaces (e.g. subsets of main)
-        self.nspaces=["all","ns0","articles","redirects","stubs","talk","pageUser", "userTalk",\
-        "meta", "metaTalk", "image", "imageTalk", "mediawiki",\
+        self.nspaces=["all","ns0","articles","redirects","cur_redirects","cur_stubs","stubs","talk",\
+        "pageUser", "userTalk","meta", "metaTalk", "image", "imageTalk", "mediawiki",\
         "mediawikiTalk", "template", "templateTalk", "help", "helpTalk", "category", "categoryTalk"]
         
         ##Some fancy lists to work with time intervals in some private methods following
@@ -65,7 +65,7 @@ class dbanaly(object):
         dbaccess.createView(self.acceso[1], view="all_"+self.language,\
         columns="rev_id, page_id, rev_len, page_ns, page_len, is_redirect, author, author_text,"+\
         " rev_timestamp, rev_parent_id",
-        query="SELECT rev_id, rev_page, rev_len, page_namespace, page_len, page_is_redirect,"+\
+        query="SELECT rev_id, rev_page, rev_len, page_namespace, page_len, rev_is_redirect,"+\
         " rev_user, rev_user_text, rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id")
         #View sumarizing info regarding pages in namespace=0 (including articles, stubs and redirects)
         dbaccess.createView(self.acceso[1], view="ns0_"+self.language,\
@@ -74,29 +74,43 @@ class dbanaly(object):
         query="SELECT rev_id, rev_page, rev_len, page_len, page_title, page_is_redirect, rev_user,"+\
         " rev_user_text, rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id"+\
         " AND page_namespace=0")
-        #View sumarizing info for articles (excluding redirects and stubs)
+        #View sumarizing info for articles (excluding pages that currently are redirects and stubs)
         dbaccess.createView(self.acceso[1], view="articles_"+self.language,\
         columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp, "+\
         "rev_parent_id",
         query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text,"+\
         " rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id AND page_namespace=0 AND "+\
         "page_is_redirect=0 AND page_is_stub=0")
-        #View with info only for redirects
+        #View with info only for redirects (pages that were redirects when that revision was made)
         dbaccess.createView(self.acceso[1], view="redirects_"+self.language,\
         columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp, "+\
         "rev_parent_id",
         query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, "+\
         "rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id AND "+\
+        "page_namespace=0 AND rev_is_redirect=1")
+        #View with info only for current redirects
+        dbaccess.createView(self.acceso[1], view="cur_redirects_"+self.language,\
+        columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp, "+\
+        "rev_parent_id",
+        query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, "+\
+        "rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id AND "+\
         "page_namespace=0 AND page_is_redirect=1")
-        #View with info only for stubs
+        #View with info only for revisions of stub pages (pages that were stubs when that revision was made)
         dbaccess.createView(self.acceso[1], view="stubs_"+self.language,\
         columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp,"\
         " rev_parent_id",
         query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, "+\
         "rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id AND"+\
+        " page_namespace=0 AND rev_is_stub=1")
+        #View with info only for revisions of current stub pages
+        dbaccess.createView(self.acceso[1], view="cur_stubs_"+self.language,\
+        columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp,"\
+        " rev_parent_id",
+        query="SELECT rev_id, rev_page, rev_len, page_len, page_title, rev_user, rev_user_text, "+\
+        "rev_timestamp, rev_parent_id FROM revision, page WHERE rev_page=page_id AND"+\
         " page_namespace=0 AND page_is_stub=1")
-        #From this point on, automatically create views for the set of pages included in every namespace in MediaWiki
-        for nspace, nsnum in zip(self.nspaces[5:], range(1,16)):
+        #From this point on, automatically create views for the set of pages included in the remaining namespaces in MediaWiki
+        for nspace, nsnum in zip(self.nspaces[7:], range(1,16)):
             dbaccess.createView(self.acceso[1], view=nspace+"_"+self.language,\
             columns="rev_id, page_id, rev_len, page_len, page_title, author, author_text, rev_timestamp,"+\
             " rev_parent_id",
@@ -486,31 +500,18 @@ class dbanaly(object):
         "_author_contrib_len GROUP BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
-        #NONE OF THIS VIEWS IS CURRENTLY CORRECT, ONLY DEVELOPMENT IDEAS
-        #[TODO-jfelipe: STUDY HOW TO AUTOMATICALLY RETRIEVE OVERALL STATS FOR EVERY
-        #PAGE AT EACH MONTH, AND NOT ONLY CONSIDERING THOSE PAGE WITH AT LEAST
-        #ONE REVISION IN THAT MONTH]
         ##BEFORE CALLING THIS METHOD, YOU HAVE TO CALL __content_evolution
         ##    Total num of pages with at least one edit in that month, total number of contribs, 
-##        total num of users who made at least 1 edit; per month
+        ##        total num of users who made at least 1 edit in that month (alive_users)
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
         columns="month, year, page_count, tot_contribs, alive_users",
         query="SELECT MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year, COUNT(DISTINCT page_id),"+\
         " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month")
-        ###########################################
-        #ALFA-ZONE
-        #TODO: Revise the following tables to see wheter they are necessary or not
-        ##    Total size of pages that have been edited at least once in that month; per month
-        dbaccess.dropView(cursor, table+"_overall_statistics2_months")
-        dbaccess.createView(cursor, view=table+"_overall_statistics2_months",\
-        columns="month, year, page_id, page_len_sum", query="SELECT MONTH(rev_timestamp) as month,"+\
-        " YEAR(rev_timestamp) AS year, page_id, SUM(page_len) FROM "+table+\
-        "_revision_page_len_evol_months GROUP BY year, month")
         
         ##    Total size of contribs; per month
-        dbaccess.dropView(cursor, table+"_overall_statistics3_months")
-        dbaccess.createView(cursor, view=table+"_overall_statistics3_months",\
+        dbaccess.dropView(cursor, table+"_tot_contribs_len_months")
+        dbaccess.createView(cursor, view=table+"_contrib_len_evol_months",\
         columns="month, year, tot_contribs_len", query="SELECT MONTH(rev_timestamp) as month, "+\
         "YEAR(rev_timestamp) AS year, SUM(sum_contrib_len) FROM "+table+\
         "_author_contrib_len_evol_months GROUP BY year, month")
@@ -519,8 +520,8 @@ class dbanaly(object):
         dbaccess.dropView(cursor, table+"_stats_pagelen_difauthors")
         dbaccess.createView(cursor, view=table+"_stats_pagelen_difauthors",\
         columns="page_id, page_len, diff_authors", query="SELECT p.page_id, p.page_len, "+\
-        "t.diff_author FROM page as p, "+table+"_diff_"+field_distinct+"_"+target+\
-        "_all AS t WHERE p.page_id=t.page_id")
+        "t.diff_author FROM page as p, "+table+"_diff_author_page_id_logged"+\
+        " AS t WHERE p.page_id=t.page_id")
         
     def test_funciones(self):
         self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
