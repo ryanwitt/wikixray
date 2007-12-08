@@ -141,17 +141,6 @@ class dbanaly(object):
         
     ##    Close DB connection
         dbaccess.close_Connection(self.acceso[0])
-    
-    def generalStatistics(self):
-    ##    Computes the views containing general statistics and overall information
-    ##    Get new DB connection
-        self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
-        "wx_"+self.language+"_"+self.conf.dumptype)
-    ##    General statistics
-        for nspace in self.nspaces:
-            self.__gral_stats(self.acceso[1], nspace+"_"+self.language)
-    ##    Close DB connection
-        dbaccess.close_Connection(self.acceso[0])
         
     def infoAuthors(self):
         
@@ -256,7 +245,18 @@ class dbanaly(object):
         for nspace in self.nspaces:
             self.__content_evolution(self.acceso[1], nspace+"_"+self.language)
         dbaccess.close_Connection(self.acceso[0])
-    
+        
+    def generalStatistics(self):
+    ##    Computes the views containing general statistics and overall information
+    ##    Get new DB connection
+        self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
+        "wx_"+self.language+"_"+self.conf.dumptype)
+    ##    General statistics
+        for nspace in self.nspaces:
+            self.__gral_stats(self.acceso[1], nspace+"_"+self.language)
+    ##    Close DB connection
+        dbaccess.close_Connection(self.acceso[0])
+        
     ##########################################################
     #################################
     #PRIVATE METHODS
@@ -500,14 +500,97 @@ class dbanaly(object):
         "_author_contrib_len GROUP BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
-        ##BEFORE CALLING THIS METHOD, YOU HAVE TO CALL __content_evolution
-        ##    Total num of pages with at least one edit in that month, total number of contribs, 
-        ##        total num of users who made at least 1 edit in that month (alive_users)
+        ##  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
+        ##  Total num of pages with at least one edit in that month, total number of contribs, 
+        ##  total num of users who made at least 1 edit in that month (alive_users)
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
         columns="month, year, page_count, tot_contribs, alive_users",
         query="SELECT MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year, COUNT(DISTINCT page_id),"+\
         " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month")
+        
+        ####################################
+        ## Parameters from Wikistats by Erik Zachte
+        ####################################
+        ## Wikipedians: contributors
+        ## Wikipedians who edited at least 10 times since they arrived
+        
+        
+        ## Wikipedians: new wikipedians
+        ## Increase in wikipedians who edited at least 10 times since they arrived
+        
+        
+        ## Wikipedians: active wikipedians
+        ## Wikipedians who contributed 5 times or more in this month
+        
+        
+        ## Wikipedians: very active wikipedians
+        ## Wikipedians who contributed 100 times or more in this month
+        
+        
+        ## Articles: Total number of pages (official count and alternative count)
+        ## Offical count --> Articles that contain at least one internal link
+        ## Alternative count --> Articles that contain at least one internal link and 200 characters readable text,
+        ## disregarding wiki- and html codes, hidden links, etc.; also headers do not count
+        ## (other columns of wikistats are based on the official count method)
+        # TODO: jfelipe- Think about implementing strip of wiki text and special HTML codes
+        # But it seems not to be very straightforward
+        # SKIPPING STRIPPED VERSIONS OF ARTICLES RIGHT NOW
+        
+        ## IMPORTANT NOTE!!
+        ## WIkiXRay will compute tables for both official articles and the complete set of articles
+        ## Measurements regarding official articles will have a page_off_ suffix
+        # OFFICIAL ARTICLES IDENTIFICATION NOT YET IMPLEMENTED
+        
+        
+        ## Articles: new articles per day in current month
+        ## new articles per day in current month
+        
+        
+        ## Articles: edits per article
+        ## Mean number of revisions per article
+        
+        
+        ## Articles: bytes per article
+        ## Mean size of article in bytes
+        
+        
+        ## Articles: articles over 0.5 Kb (%)
+        ## Percentage of articles with at least 0.5 Kb readable text
+        
+        
+        ## Articles: articles over 2 Kb (%)
+        ## Percentage of articles with at least 2 Kb readable text
+        
+        ## Database: edits per month
+        ## Edits in past month (incl. redirects, incl. unregistered contributors, incl. bots)
+        # SEE: table _overall_statistics1_months previously generated in this method
+        ## Database: database size
+        ## Combined size of all articles (incl. redirects)
+        # SEE: table _page_len_evol_months previously generated in method __content_evolution
+        
+        ## Database: words
+        ## Total number of words (excl. redirects, html/wiki codes and hidden links)
+        
+        
+        ## Links: Internal links
+        ## Total number of internal links (excl. redirects, stubs and link lists)
+        
+        
+        ## Links: Links to other Wikipedias
+        ## Total number of links to other Wikipedias
+        
+        
+        ## Links: images
+        ## Total number of images presented
+        
+        
+        ## Links: external links
+        ## Total number of links to other sites
+        
+        
+        ## Links: redirects
+        ## Total number of redirects
         
         ##    Total size of contribs; per month
         dbaccess.dropView(cursor, table+"_tot_contribs_len_months")

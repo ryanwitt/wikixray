@@ -429,6 +429,9 @@ class analysisPerformer:
         self.graphBars.createGraphic("periodifying-revisions-"+str(fraction)+"-contribs",(thresholdBars,),\
         xlabst="period", ylabst="authors", mainTitle="Min. num. of contributions for the top 10% per period")
 
+    # TODO:jfelipe-New commiters generations
+    # Implement generations analysis of new users for each period (month)
+        
     def topFractionCommiters(self, fraction):
 
         """
