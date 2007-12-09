@@ -138,6 +138,18 @@ class dbanaly(object):
             columns="page_id, rev_id, author_text, rev_timestamp",\
             query="SELECT page_id,rev_id,author_text, MIN(rev_timestamp) FROM "+\
             nspace+"_"+self.language+" WHERE author=0 GROUP BY page_id")
+            
+            dbaccess.dropView(self.acceso[1],nspace+"_"+self.language+"_list_months")
+            dbaccess.createView(self.acceso[1],view=nspace+"_"+self.language+"_list_months",\
+            columns="month, year",query="SELECT MONTH(rev_timestamp) as month, "+\
+            "YEAR(rev_timestamp) as year"+\
+            " FROM "+nspace+"_"+self.language+" GROUP BY year, month ORDER BY year, month")
+            
+            dbaccess.dropView(self.acceso[1],nspace+"_"+self.language+"_list_quarters")
+            dbaccess.createView(self.acceso[1],view=nspace+"_"+self.language+"_list_quarters",\
+            columns="quarter, year",query="SELECT QUARTER(rev_timestamp) as quarter, "+\
+            "YEAR(rev_timestamp) as year FROM "+nspace+"_"+self.language+" GROUP BY year,"+\
+            " quarter ORDER BY year, quarter")
         
     ##    Close DB connection
         dbaccess.close_Connection(self.acceso[0])
@@ -426,49 +438,63 @@ class dbanaly(object):
     def __content_evolution(self,cursor, table):
     ##    Create some views to make data retrieving and graphics depicting easier
     ##    Evolution in time of the page len at the beginning of every month/quarter
-        dbaccess.dropView(cursor,table+"_list_months")
-        dbaccess.createView(cursor,view=table+"_list_months",\
-        columns="month, year",query="SELECT MONTH(rev_timestamp) as month, YEAR(rev_timestamp) as year"+\
-        " FROM "+table+" GROUP BY year, month ORDER BY year, month")
-        
-        dbaccess.dropView(cursor,table+"_list_quarters")
-        dbaccess.createView(cursor,view=table+"_list_quarters",\
-        columns="quarter, year",query="SELECT QUARTER(rev_timestamp) as quarter, YEAR(rev_timestamp) as year"+\
-        " FROM "+table+" GROUP BY year, quarter ORDER BY year, quarter")
-        
         dbaccess.dropView(cursor, table+"_page_temp_months")
         dbaccess.createView(cursor, view=table+"_page_temp_months",\
         columns="page_id, rev_id, rev_len, month, year", query="SELECT page_id, rev_id, rev_len,"+\
         " MONTH(rev_timestamp), YEAR(rev_timestamp) FROM "+table)
         
-        dbaccess.dropView(cursor, table+"_page_temp_quarters")
-        dbaccess.createView(cursor, view=table+"_page_temp_quarters",\
-        columns="page_id, rev_id, rev_len, quarter, year", query="SELECT page_id, rev_id, rev_len,"+\
-        " QUARTER(rev_timestamp), YEAR(rev_timestamp) FROM "+table)
+##        dbaccess.dropView(cursor, table+"_page_temp_quarters")
+##        dbaccess.createView(cursor, view=table+"_page_temp_quarters",\
+##        columns="page_id, rev_id, rev_len, quarter, year", query="SELECT page_id, rev_id, rev_len,"+\
+##        " QUARTER(rev_timestamp), YEAR(rev_timestamp) FROM "+table)
         
-        dbaccess.dropView(cursor, table+"_page_len_per_month")
-        dbaccess.createView(cursor, view=table+"_page_len_per_month",\
-        columns="page_id, max_rev_id, rev_len, amonth, ayear, bmonth, byear",\
-        query="SELECT page_id, max(rev_id), rev_len, a.month, a.year, b.month, b.year"+\
-        " FROM "+table+"_page_temp_months"+" AS a, "+table+"_list_months"+" AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
+        dbaccess.dropView(cursor, table+"_page_maxrev_till_month")
+        dbaccess.createView(cursor, view=table+"_page_maxrev_till_month",\
+        columns="page_id, max_rev_id, month, year",\
+        query="SELECT page_id, max(rev_id), b.month, b.year"+\
+        " FROM "+table+"_page_temp_months"+" AS a, "+table+"_list_months"+\
+        " AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
         " GROUP BY b.year, b.month, page_id")
+        
+        dbaccess.dropView(cursor, table+"_page_len_till_month")
+        dbaccess.createView(cursor, view=table+"_page_len_till_month",\
+        columns="page_id, max_rev_id, rev_len, amonth, ayear, bmonth, byear",\
+        query="SELECT b.page_id, b.max_rev_id, a.rev_len, a.month, a.year, b.month, b.year"+\
+        " FROM "+table+"_page_temp_months"+" AS a, "+table+"_page_maxrev_till_month"+\
+        " AS b WHERE (a.rev_id=b.max_rev_id) ORDER BY b.year, b.month, page_id")
         
         dbaccess.dropView(cursor, table+"_page_len_evol_months")
         dbaccess.createView(cursor, view=table+"_page_len_evol_months",\
         columns="month, year, page_len_sum",query="SELECT bmonth, byear, SUM(rev_len) FROM "+\
-        table+"_page_len_per_month GROUP BY byear, bmonth")
+        table+"_page_len_till_month GROUP BY byear, bmonth ORDER BY byear, bmonth")
         
-        dbaccess.dropView(cursor, table+"_page_len_per_quarter")
-        dbaccess.createView(cursor, table+"_page_len_per_quarter",\
-        columns="page_id, max_rev_id, rev_len, aquarter, ayear, bquarter, byear",\
-        query="SELECT page_id, max(rev_id), rev_len, a.quarter, a.year, b.quarter, b.year"+\
-        " FROM "+table+"_page_temp_quarters"+" AS a, "+table+"_list_quarters"+" AS b WHERE(a.quarter<=b.quarter) AND (a.year<=b.year)"+\
-        " GROUP BY b.year, b.quarter, page_id")
+        dbaccess.dropView(cursor, table+"_page_num_evol_months")
+        dbaccess.createView(cursor, view=table+"_page_num_evol_months",\
+        columns="bmonth, byear, page_num",\
+        query="SELECT b.month, b.year, COUNT(DISTINCT(page_id))"+\
+        " FROM "+table+"_page_temp_months"+" AS a, "+table+"_list_months"+\
+        " AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
+        " GROUP BY b.year, b.month")
         
-        dbaccess.dropView(cursor, table+"_page_len_evol_quarters")
-        dbaccess.createView(cursor, view=table+"_page_len_evol_quarters",\
-        columns="quarter, year, page_len_sum",query="SELECT bquarter, byear, SUM(rev_len) FROM "+\
-        table+"_page_len_per_quarter GROUP BY byear, bquarter")
+##        dbaccess.dropView(cursor, table+"_page_maxrev_till_quarter")
+##        dbaccess.createView(cursor, view=table+"_page_maxrev_till_quarter",\
+##        columns="page_id, max_rev_id, quarter, year",\
+##        query="SELECT page_id, max(rev_id), b.quarter, b.year"+\
+##        " FROM "+table+"_page_temp_quarters"+" AS a, "+table+"_list_quarters"+\
+##        " AS b WHERE(a.quarter<=b.quarter) AND (a.year<=b.year)"+\
+##        " GROUP BY b.year, b.month, page_id")
+        
+##        dbaccess.dropView(cursor, table+"_page_len_till_quarter")
+##        dbaccess.createView(cursor, view=table+"_page_len_till_quarter",\
+##        columns="page_id, max_rev_id, rev_len, aquarter, ayear, bquarter, byear",\
+##        query="SELECT b.page_id, b.max_rev_id, a.rev_len, a.quarter, a.year, b.quarter, b.year"+\
+##        " FROM "+table+"_page_temp_quarters"+" AS a, "+table+"_page_maxrev_till_quarter"+\
+##        " AS b WHERE (a.rev_id=b.max_rev_id) ORDER BY b.year, b.quarter, page_id")
+##        
+##        dbaccess.dropView(cursor, table+"_page_len_evol_quarters")
+##        dbaccess.createView(cursor, view=table+"_page_len_evol_quarters",\
+##        columns="quarter, year, page_len_sum",query="SELECT bquarter, byear, SUM(rev_len) FROM "+\
+##        table+"_page_len_till_quarter GROUP BY byear, bquarter ORDER BY byear, bmonth")
         
     ##    Now for revisions. We have to deal with the first revision of each tree.
     ##    In the first revision of every page, rev_parent==NULL. 
@@ -490,14 +516,14 @@ class dbanaly(object):
         columns="author, sum_contrib_len, month, year",\
         query="SELECT author, SUM(contrib_len), MONTH(timestamp) as month,"+\
         " YEAR(timestamp) as year FROM "+table+\
-        "_author_contrib_len GROUP BY author, year, month")
+        "_author_contrib_len GROUP BY author, year, month ORDER BY author, year, month")
     ##    The same per quarter
         dbaccess.dropView(cursor, table+"_contrib_len_evol_quarters")
         dbaccess.createView(cursor, view=table+"_author_contrib_len_evol_quarters",\
         columns="author, sum_contrib_len, quarter, year",\
         query="SELECT author, SUM(contrib_len), QUARTER(timestamp) as quarter,"+\
         " YEAR(timestamp) as year FROM "+table+\
-        "_author_contrib_len GROUP BY author, year, quarter")
+        "_author_contrib_len GROUP BY author, year, quarter ORDER BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
         ##  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
@@ -505,28 +531,47 @@ class dbanaly(object):
         ##  total num of users who made at least 1 edit in that month (alive_users)
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
-        columns="month, year, page_count, tot_contribs, alive_users",
+        columns="month, year, page_count, tot_contribs, alive_users",\
         query="SELECT MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year, COUNT(DISTINCT page_id),"+\
-        " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month")
+        " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month ORDER BY "+\
+        " year, month")
         
         ####################################
         ## Parameters from Wikistats by Erik Zachte
         ####################################
         ## Wikipedians: contributors
         ## Wikipedians who edited at least 10 times since they arrived
+        ## Warning!! This view does not deal with dead wikipedians, those who did not
+        ## came back in subsequent months
+        dbaccess.dropView(cursor, table+"_author_contrib_till_month")
+        dbaccess.createView(cursor, view=table+"_author_contrib_till_month",\
+        columns="author, sum_contribs, amonth, ayear, bmonth, byear",\
+        query="SELECT author, SUM(tot_revisions), b.month, b.year"+\
+        " FROM "+table+"_revs_author_logged_months"+" AS a, "+table+"_list_months"+\
+        " AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
+        " GROUP BY b.year, b.month, author")
         
-        
-        ## Wikipedians: new wikipedians
-        ## Increase in wikipedians who edited at least 10 times since they arrived
-        
+        dbaccess.dropView(cursor, table+"_contributors_evol_months")
+        dbaccess.createView(cursor, view=table+"_contributors_evol_months",\
+        columns="month, year, contributors_sum",query="SELECT bmonth, byear,"+\
+        " COUNT(DISTINCT(author)) FROM "+table+"_author_contrib_till_month "+\
+        " WHERE sum_contribs>=10 GROUP BY byear, bmonth ORDER BY byear, bmonth")
         
         ## Wikipedians: active wikipedians
         ## Wikipedians who contributed 5 times or more in this month
-        
+        dbaccess.dropView(cursor, table+"_active_authors_months")
+        dbaccess.createView(cursor, view=table+"_active_authors_months",\
+        columns="month, year, active_authors",\
+        query="SELECT month, year, COUNT(DISTINCT(author)) FROM "+table+\
+        "_revs_author_logged_months WHERE tot_revisions>=5 GROUP BY year, month")
         
         ## Wikipedians: very active wikipedians
         ## Wikipedians who contributed 100 times or more in this month
-        
+        dbaccess.dropView(cursor, table+"_very_active_authors_months")
+        dbaccess.createView(cursor, view=table+"_very_active_authors_months",\
+        columns="month, year, active_authors",\
+        query="SELECT month, year, COUNT(DISTINCT(author)) FROM "+table+\
+        "_revs_author_logged_months WHERE tot_revisions>=100 GROUP BY year, month")
         
         ## Articles: Total number of pages (official count and alternative count)
         ## Offical count --> Articles that contain at least one internal link
@@ -535,7 +580,7 @@ class dbanaly(object):
         ## (other columns of wikistats are based on the official count method)
         # TODO: jfelipe- Think about implementing strip of wiki text and special HTML codes
         # But it seems not to be very straightforward
-        # SKIPPING STRIPPED VERSIONS OF ARTICLES RIGHT NOW
+        # SKIPPING STRIPPED VERSIONS OF ARTICLES' CONTENTS BY THE MOMENT
         
         ## IMPORTANT NOTE!!
         ## WIkiXRay will compute tables for both official articles and the complete set of articles
@@ -543,24 +588,43 @@ class dbanaly(object):
         # OFFICIAL ARTICLES IDENTIFICATION NOT YET IMPLEMENTED
         
         
-        ## Articles: new articles per day in current month
-        ## new articles per day in current month
+        ## Articles: new articles per day in current month (MEAN)
+        ## new articles per day in current month (MEAN)
         
         
-        ## Articles: edits per article
-        ## Mean number of revisions per article
+        ## Articles: edits per article; per month
+        ## Mean number of revisions per article; per month
+        dbaccess.dropView(cursor, table+"_revs_per_page_id_months")
+        dbaccess.createView(cursor, view=table+"_revs_per_page_id_months",\
+        columns="month, year, revs_per_article", query="SELECT month, year,"+\
+        " SUM(tot_revisions)/COUNT(DISTINCT(page_id) FROM "+table+\
+        "_revs_page_id_logged_months GROUP BY year, month,"+\
+        " ORDER BY year, month")
         
+        ## Articles: bytes per article; per month
+        ## Mean size of article in bytes; per month
+        dbaccess.dropView(cursor, table+"_bytes_per_article_months")
+        dbaccess.createView(cursor, view=table+"_bytes_per_article_months",\
+        columns="month, year, bytes_per_article", query="SELECT a.month, a.year,"+\
+        " (b.page_len_sum/a.page_num) FROM "+table+"_page_num_evol_months AS a, "+table+\
+        "_page_len_evol_months AS b"+\
+        " WHERE (a.month=b.month) AND (a.year=b.year) ORDER BY a.year, a.month")
         
-        ## Articles: bytes per article
-        ## Mean size of article in bytes
+        ## Articles: articles over 0.5 Kb (%); per month
+        ## Percentage of articles with at least 0.5 Kb readable text; per month
+        ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT
+        dbaccess.dropView(cursor, table+"_pages_over_05k_months")
+        dbaccess.createView(cursor, view=table+"_pages_over_05k_months",
+        columns="month, year, page_perc", query="SELECT b.month, b.year,"+\
+        " (COUNT(DISTINCT(a.page_id))/b.page_num) FROM "+table+"_page_len_till_month AS a, "+\
+        table+"_page_num_evol_months AS b WHERE (a.bmonth=b.month) AND (a.Byear=b.year) GROUP BY"+\
+        " b.year, b.month, a.page_id ORDER BY b.year, b.month")
         
+        ## Articles: articles over 2 Kb (%); per month
+        ## Percentage of articles with at least 2 Kb readable text; per month
+        ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT
+        #dbaccess.dropView(cursor, table+"_pages_over_2k_months")
         
-        ## Articles: articles over 0.5 Kb (%)
-        ## Percentage of articles with at least 0.5 Kb readable text
-        
-        
-        ## Articles: articles over 2 Kb (%)
-        ## Percentage of articles with at least 2 Kb readable text
         
         ## Database: edits per month
         ## Edits in past month (incl. redirects, incl. unregistered contributors, incl. bots)

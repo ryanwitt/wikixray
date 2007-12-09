@@ -60,13 +60,13 @@ if __name__ == '__main__':
     for idioma in ListaIdiomas:
         print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
         dbanaly=dbanaly.dbanaly(conf,idioma)
-##        print "AUTHOR ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
-##        dbanaly.infoAuthors()
-##        print "AUTHOR ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-##        print "ARTICLE ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
-##        dbanaly.infoPages()
-##        print "ARTICLE ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-##        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "AUTHOR ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoAuthors()
+        print "AUTHOR ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "ARTICLE ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.infoPages()
+        print "ARTICLE ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
         dbanaly.infoContents()
         print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
         
