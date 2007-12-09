@@ -48,12 +48,12 @@ if __name__ == '__main__':
     #ListaIdiomas=conf.langs
     ListaIdiomas=["furwiki"]
     
-    print "STARTING DATABASE DUMP DECOMPRESSION...\n"
-    for idioma in ListaIdiomas:
-        dump=dbdump.dump(language=idioma,msqlu=conf.msqlu, msqlp=conf.msqlp)
-        dump.download()
-        dump.decompress()
-    print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
+##    print "STARTING DATABASE DUMP DECOMPRESSION...\n"
+##    for idioma in ListaIdiomas:
+##        dump=dbdump.dump(language=idioma,msqlu=conf.msqlu, msqlp=conf.msqlp)
+##        dump.download()
+##        dump.decompress()
+##    print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
     
     print "INITIATING DATABASE ANALYSIS...\n"
         
@@ -69,6 +69,8 @@ if __name__ == '__main__':
         print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
         dbanaly.infoContents()
         print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+        dbanaly.generalStatistics()
+        print "GENERAL STATISTICS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
         
 ##    print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
 ##    graphics.work(ListaIdiomas)

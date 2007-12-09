@@ -470,7 +470,7 @@ class dbanaly(object):
         
         dbaccess.dropView(cursor, table+"_page_num_evol_months")
         dbaccess.createView(cursor, view=table+"_page_num_evol_months",\
-        columns="bmonth, byear, page_num",\
+        columns="month, year, page_num",\
         query="SELECT b.month, b.year, COUNT(DISTINCT(page_id))"+\
         " FROM "+table+"_page_temp_months"+" AS a, "+table+"_list_months"+\
         " AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
@@ -533,7 +533,7 @@ class dbanaly(object):
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
         columns="month, year, page_count, tot_contribs, alive_users",\
         query="SELECT MONTH(rev_timestamp) AS month, YEAR(rev_timestamp) AS year, COUNT(DISTINCT page_id),"+\
-        " COUNT(DISTINCT rev_id), COUNT(DISTINCT rev_user) FROM "+table+" GROUP BY year, month ORDER BY "+\
+        " COUNT(DISTINCT rev_id), COUNT(DISTINCT author) FROM "+table+" GROUP BY year, month ORDER BY "+\
         " year, month")
         
         ####################################
@@ -545,7 +545,7 @@ class dbanaly(object):
         ## came back in subsequent months
         dbaccess.dropView(cursor, table+"_author_contrib_till_month")
         dbaccess.createView(cursor, view=table+"_author_contrib_till_month",\
-        columns="author, sum_contribs, amonth, ayear, bmonth, byear",\
+        columns="author, sum_contribs, bmonth, byear",\
         query="SELECT author, SUM(tot_revisions), b.month, b.year"+\
         " FROM "+table+"_revs_author_logged_months"+" AS a, "+table+"_list_months"+\
         " AS b WHERE(a.month<=b.month) AND (a.year<=b.year)"+\
@@ -597,8 +597,8 @@ class dbanaly(object):
         dbaccess.dropView(cursor, table+"_revs_per_page_id_months")
         dbaccess.createView(cursor, view=table+"_revs_per_page_id_months",\
         columns="month, year, revs_per_article", query="SELECT month, year,"+\
-        " SUM(tot_revisions)/COUNT(DISTINCT(page_id) FROM "+table+\
-        "_revs_page_id_logged_months GROUP BY year, month,"+\
+        " (SUM(tot_revisions)/COUNT(DISTINCT(page_id))) FROM "+table+\
+        "_revs_page_id_logged_months GROUP BY year, month"+\
         " ORDER BY year, month")
         
         ## Articles: bytes per article; per month
@@ -622,9 +622,13 @@ class dbanaly(object):
         
         ## Articles: articles over 2 Kb (%); per month
         ## Percentage of articles with at least 2 Kb readable text; per month
-        ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT
-        #dbaccess.dropView(cursor, table+"_pages_over_2k_months")
-        
+        ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT, SO WE COUNT RAW CONTENTS
+        dbaccess.dropView(cursor, table+"_pages_over_2k_months")
+        dbaccess.createView(cursor, view=table+"_pages_over_2k_months",
+        columns="month, year, page_perc", query="SELECT b.month, b.year,"+\
+        " (COUNT(DISTINCT(a.page_id))/b.page_num) FROM "+table+"_page_len_till_month AS a, "+\
+        table+"_page_num_evol_months AS b WHERE (a.bmonth=b.month) AND (a.byear=b.year) GROUP BY"+\
+        " b.year, b.month, a.page_id ORDER BY b.year, b.month")
         
         ## Database: edits per month
         ## Edits in past month (incl. redirects, incl. unregistered contributors, incl. bots)
@@ -659,8 +663,8 @@ class dbanaly(object):
         ##    Total size of contribs; per month
         dbaccess.dropView(cursor, table+"_tot_contribs_len_months")
         dbaccess.createView(cursor, view=table+"_contrib_len_evol_months",\
-        columns="month, year, tot_contribs_len", query="SELECT MONTH(rev_timestamp) as month, "+\
-        "YEAR(rev_timestamp) AS year, SUM(sum_contrib_len) FROM "+table+\
+        columns="month, year, tot_contribs_len", query="SELECT  month,"+\
+        " year, SUM(sum_contrib_len) FROM "+table+\
         "_author_contrib_len_evol_months GROUP BY year, month")
         
         ##Size of pages and number of different authors who have edited them
