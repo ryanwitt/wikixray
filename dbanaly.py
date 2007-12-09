@@ -123,7 +123,8 @@ class dbanaly(object):
         dbaccess.createView(self.acceso[1],view="nspaces_"+self.language, columns="namespace, pages_in_nspace",\
         query="SELECT page_namespace, COUNT(*) FROM page GROUP BY page_namespace")
     
-            ##    Intermidiate view for the minimun timestamp of every page [annons, and logged users]
+        ##    Intermidiate views for the minimun timestamp of every page [annons, and logged users]
+        ## And other useful intermediate views regarding page evolution
         for nspace in self.nspaces:
             dbaccess.dropView(self.acceso[1], nspace+"_"+self.language+\
             "_page_min_timestamp_logged")
@@ -155,14 +156,12 @@ class dbanaly(object):
         dbaccess.close_Connection(self.acceso[0])
         
     def infoAuthors(self):
-        
-        ##	Create data per user
-        
-        ##	Get DB connection
+        ##  Generates statistics per user
+        ##  Get DB connection
         self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
         "wx_"+self.language+"_"+self.conf.dumptype)
         
-        ##	local configuration
+        ##	local configuration: retrieving info for authors
         target="author"
         ##	intervals might be days, weeks, months, quarters, years
         intervals=["months", "quarters","weeks"]
@@ -201,13 +200,16 @@ class dbanaly(object):
         for nspace in self.nspaces:
             for interval in intervals:
                 self.__total_page_init_author_time(self.acceso[1], interval,nspace+"_"+self.language)
+                
+        ############################
+        #   BIRTH AND DEATH ANALYSIS FOR THE AUTHOR COMMUNITY
+        ############################
         
         #Close DB connection
         dbaccess.close_Connection(self.acceso[0])
     
     def infoPages(self):
-        ##	Data per article
-        
+        ##	Generates statistics per article
         ##	Get new DB connection
         self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
         "wx_"+self.language+"_"+self.conf.dumptype)
@@ -218,7 +220,6 @@ class dbanaly(object):
         
         ###########################
         #Total num of revisions per page
-        ###########################
         for nspace in self.nspaces:
             self.__total_rev(self.acceso[1], nspace+"_"+self.language, target)
         
@@ -235,7 +236,7 @@ class dbanaly(object):
                 self.__total_rev_time(self.acceso[1], interval,nspace+"_"+self.language, target)
         
         ###########################
-        #Total number of different editors per page; per month and per quarter
+        #Total number of different editors per page; per month ,quarter and week
         for nspace in self.nspaces:
             for interval in intervals:
                 self.__total_rev_diff_time(self.acceso[1], interval,nspace+"_"+self.language, target)
@@ -244,22 +245,36 @@ class dbanaly(object):
         dbaccess.close_Connection(self.acceso[0])
     
     def infoContents(self):
-    
         ###########################
         #Contents analysis
         ###########################
-        ##Currently supported
-    ##        Evolution in time of the length of articles (per month; per quarter)
-    ##        Evolution in time of the lenght of user contributions (per month; per quarter)
+        ##  Get DB connection
         self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
         "wx_"+self.language+"_"+self.conf.dumptype)
-        ##    For table articles
+        ## For all namespaces (official an artificial):
+        ## Evolution in time of the lenght of user contributions (per month; per quarter)
+        ## Evolution in time of the lenght of pages (per month; per quarter supported but commented)
         for nspace in self.nspaces:
             self.__content_evolution(self.acceso[1], nspace+"_"+self.language)
         dbaccess.close_Connection(self.acceso[0])
         
     def generalStatistics(self):
-    ##    Computes the views containing general statistics and overall information
+    ##  Computes the views containing general statistics and overall information:
+    ##  For all namespaces (official and artificial):
+    ################
+    ##  View _overall_statistics1_months, which includes
+    ##  Total num of pages with at least one edit in that month, total number of contribs, 
+    ##  total num of users who made at least 1 edit in that month (alive_users)
+    ####################################
+    ##  Parameters from Wikistats by Erik Zachte
+    ####################################
+    ##  Wikipedians: contributors, active wikipedians, very active wikipedians
+    ##  Articles: (WARNING: readable contents are not being filtered out yet)
+    ##  new articles per day, edits per article, bytes per article, % of articles over 0.5k,
+    ##  % of articles over 2k
+    ##  Total size of contribs per month
+    ##  Size of pages and number of different authors who have edited them
+    ####################################
     ##    Get new DB connection
         self.acceso = dbaccess.get_Connection("localhost", 3306, self.conf.msqlu, self.conf.msqlp,\
         "wx_"+self.language+"_"+self.conf.dumptype)
@@ -500,9 +515,9 @@ class dbanaly(object):
     ##    In the first revision of every page, rev_parent==NULL. 
     ##    Later, UNION that group with the first revisions group //Must prove it against testbed dump
     
-    ##    Length in bytes of the current rev and the previous one
+    #    Length in bytes of the current rev and the previous one
         dbaccess.dropView(cursor, table+"_contrib_len")
-        dbaccess.createView(cursor, view=table+"_author_contrib_len",\
+        dbaccess.createView(cursor, view=table+"_contrib_len",\
         columns="rev_id, page_id, author, contrib_len, timestamp",\
         query="(SELECT cur.rev_id, cur.page_id, cur.author, (cur.rev_len-prev.rev_len) AS contrib_len, "+\
         " cur.rev_timestamp FROM "+table+" AS cur, "+table+\
@@ -510,23 +525,23 @@ class dbanaly(object):
         " UNION (SELECT rev_id, page_id, author, rev_len, rev_timestamp FROM "+table+\
         " WHERE rev_parent_id IS NULL)")
 
-    ##    Sum of the length of the contributions for every author; per month
+    #    Sum of the length of the contributions for every author; per month
         dbaccess.dropView(cursor, table+"_contrib_len_evol_months")
-        dbaccess.createView(cursor, view=table+"_author_contrib_len_evol_months",\
+        dbaccess.createView(cursor, view=table+"_contrib_len_evol_months",\
         columns="author, sum_contrib_len, month, year",\
         query="SELECT author, SUM(contrib_len), MONTH(timestamp) as month,"+\
         " YEAR(timestamp) as year FROM "+table+\
         "_author_contrib_len GROUP BY author, year, month ORDER BY author, year, month")
-    ##    The same per quarter
+    #    The same per quarter
         dbaccess.dropView(cursor, table+"_contrib_len_evol_quarters")
-        dbaccess.createView(cursor, view=table+"_author_contrib_len_evol_quarters",\
+        dbaccess.createView(cursor, view=table+"contrib_len_evol_quarters",\
         columns="author, sum_contrib_len, quarter, year",\
         query="SELECT author, SUM(contrib_len), QUARTER(timestamp) as quarter,"+\
         " YEAR(timestamp) as year FROM "+table+\
         "_author_contrib_len GROUP BY author, year, quarter ORDER BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
-        ##  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
+        #  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
         ##  Total num of pages with at least one edit in that month, total number of contribs, 
         ##  total num of users who made at least 1 edit in that month (alive_users)
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
@@ -558,7 +573,7 @@ class dbanaly(object):
         " WHERE sum_contribs>=10 GROUP BY byear, bmonth ORDER BY byear, bmonth")
         
         ## Wikipedians: active wikipedians
-        ## Wikipedians who contributed 5 times or more in this month
+        # Wikipedians who contributed 5 times or more in this month
         dbaccess.dropView(cursor, table+"_active_authors_months")
         dbaccess.createView(cursor, view=table+"_active_authors_months",\
         columns="month, year, active_authors",\
@@ -566,7 +581,7 @@ class dbanaly(object):
         "_revs_author_logged_months WHERE tot_revisions>=5 GROUP BY year, month")
         
         ## Wikipedians: very active wikipedians
-        ## Wikipedians who contributed 100 times or more in this month
+        # Wikipedians who contributed 100 times or more in this month
         dbaccess.dropView(cursor, table+"_very_active_authors_months")
         dbaccess.createView(cursor, view=table+"_very_active_authors_months",\
         columns="month, year, active_authors",\
@@ -592,8 +607,9 @@ class dbanaly(object):
         ## new articles per day in current month (MEAN)
         
         
+        
         ## Articles: edits per article; per month
-        ## Mean number of revisions per article; per month
+        # Mean number of revisions per article; per month
         dbaccess.dropView(cursor, table+"_revs_per_page_id_months")
         dbaccess.createView(cursor, view=table+"_revs_per_page_id_months",\
         columns="month, year, revs_per_article", query="SELECT month, year,"+\
@@ -602,7 +618,7 @@ class dbanaly(object):
         " ORDER BY year, month")
         
         ## Articles: bytes per article; per month
-        ## Mean size of article in bytes; per month
+        # Mean size of article in bytes; per month
         dbaccess.dropView(cursor, table+"_bytes_per_article_months")
         dbaccess.createView(cursor, view=table+"_bytes_per_article_months",\
         columns="month, year, bytes_per_article", query="SELECT a.month, a.year,"+\
@@ -611,7 +627,7 @@ class dbanaly(object):
         " WHERE (a.month=b.month) AND (a.year=b.year) ORDER BY a.year, a.month")
         
         ## Articles: articles over 0.5 Kb (%); per month
-        ## Percentage of articles with at least 0.5 Kb readable text; per month
+        # Percentage of articles with at least 0.5 Kb readable text; per month
         ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT
         dbaccess.dropView(cursor, table+"_pages_over_05k_months")
         dbaccess.createView(cursor, view=table+"_pages_over_05k_months",
@@ -621,7 +637,7 @@ class dbanaly(object):
         " b.year, b.month, a.page_id ORDER BY b.year, b.month")
         
         ## Articles: articles over 2 Kb (%); per month
-        ## Percentage of articles with at least 2 Kb readable text; per month
+        # Percentage of articles with at least 2 Kb readable text; per month
         ## BY THE MOMENT, WE DON'T PRECISELY IDENTIFY READABLE TEXT, SO WE COUNT RAW CONTENTS
         dbaccess.dropView(cursor, table+"_pages_over_2k_months")
         dbaccess.createView(cursor, view=table+"_pages_over_2k_months",
@@ -631,34 +647,46 @@ class dbanaly(object):
         " b.year, b.month, a.page_id ORDER BY b.year, b.month")
         
         ## Database: edits per month
-        ## Edits in past month (incl. redirects, incl. unregistered contributors, incl. bots)
+        # Edits in past month (incl. redirects, incl. unregistered contributors, incl. bots)
         # SEE: table _overall_statistics1_months previously generated in this method
         ## Database: database size
-        ## Combined size of all articles (incl. redirects)
+        # Combined size of all articles (incl. redirects)
         # SEE: table _page_len_evol_months previously generated in method __content_evolution
         
         ## Database: words
-        ## Total number of words (excl. redirects, html/wiki codes and hidden links)
+        # Total number of words (excl. redirects, html/wiki codes and hidden links)
+        #TODO:
+        ## We are still not excluding links or tags so far
         
         
         ## Links: Internal links
-        ## Total number of internal links (excl. redirects, stubs and link lists)
+        # Total number of internal links (excl. redirects, stubs and link lists)
+        #TODO:
+        ## To implement when we were able to identify links
         
         
         ## Links: Links to other Wikipedias
-        ## Total number of links to other Wikipedias
-        
+        # Total number of links to other Wikipedias
+        #TODO:
+        ## To implement when we were able to identify links
         
         ## Links: images
-        ## Total number of images presented
-        
+        # Total number of images presented
+        #TODO:
+        ## To implement when we were able to identify links
         
         ## Links: external links
-        ## Total number of links to other sites
+        # Total number of links to other sites
+        #TODO:
+        ## To implement when we were able to identify links
         
         
         ## Links: redirects
-        ## Total number of redirects
+        # Total number of redirects
+        ## This is correctly implemented  at present time
+        # Already generated
+        # Just retrieve _page_num_evol_months or any other adhoc view for 
+        # the special purpose namespace redirects
         
         ##    Total size of contribs; per month
         dbaccess.dropView(cursor, table+"_tot_contribs_len_months")
