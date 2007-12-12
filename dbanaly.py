@@ -541,9 +541,15 @@ class dbanaly(object):
         "_author_contrib_len GROUP BY author, year, quarter ORDER BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
+<<<<<<< .mine
+        ##BEFORE CALLING THIS METHOD, YOU HAVE TO CALL __content_evolution
+        ##    Total num of pages with at least one edit in that month, total number of contribs, 
+        ##    total num of users who made at least 1 edit in that month (alive_users)
+=======
         #  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
         ##  Total num of pages with at least one edit in that month, total number of contribs, 
         ##  total num of users who made at least 1 edit in that month (alive_users)
+>>>>>>> .r35
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
         columns="month, year, page_count, tot_contribs, alive_users",\
