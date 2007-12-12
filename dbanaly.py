@@ -531,25 +531,22 @@ class dbanaly(object):
         columns="author, sum_contrib_len, month, year",\
         query="SELECT author, SUM(contrib_len), MONTH(timestamp) as month,"+\
         " YEAR(timestamp) as year FROM "+table+\
-        "_author_contrib_len GROUP BY author, year, month ORDER BY author, year, month")
+        "_contrib_len WHERE author !=0 GROUP BY author, year, month ORDER BY author, year, month")
     #    The same per quarter
         dbaccess.dropView(cursor, table+"_contrib_len_evol_quarters")
         dbaccess.createView(cursor, view=table+"contrib_len_evol_quarters",\
         columns="author, sum_contrib_len, quarter, year",\
         query="SELECT author, SUM(contrib_len), QUARTER(timestamp) as quarter,"+\
         " YEAR(timestamp) as year FROM "+table+\
-        "_author_contrib_len GROUP BY author, year, quarter ORDER BY author, year, quarter")
+        "_contrib_len WHERE author!=0 GROUP BY author, year, quarter ORDER BY author, year, quarter")
 
     def __gral_stats(self,cursor, table):
-<<<<<<< .mine
         ##BEFORE CALLING THIS METHOD, YOU HAVE TO CALL __content_evolution
         ##    Total num of pages with at least one edit in that month, total number of contribs, 
         ##    total num of users who made at least 1 edit in that month (alive_users)
-=======
         #  IT IS MANDATORY TO CALL __content_evolution BEFORE CALLING THIS METHOD
         ##  Total num of pages with at least one edit in that month, total number of contribs, 
         ##  total num of users who made at least 1 edit in that month (alive_users)
->>>>>>> .r35
         dbaccess.dropView(cursor, table+"_overall_statistics1_months")
         dbaccess.createView(cursor, view=table+"_overall_statistics1_months",\
         columns="month, year, page_count, tot_contribs, alive_users",\
@@ -696,10 +693,9 @@ class dbanaly(object):
         
         ##    Total size of contribs; per month
         dbaccess.dropView(cursor, table+"_tot_contribs_len_months")
-        dbaccess.createView(cursor, view=table+"_contrib_len_evol_months",\
+        dbaccess.createView(cursor, view=table+"_tot_contrib_len_evol_months",\
         columns="month, year, tot_contribs_len", query="SELECT  month,"+\
-        " year, SUM(sum_contrib_len) FROM "+table+\
-        "_author_contrib_len_evol_months GROUP BY year, month")
+        " year, SUM(sum_contrib_len) FROM "+table+"_contrib_len_evol_months GROUP BY year, month")
         
         ##Size of pages and number of different authors who have edited them
         dbaccess.dropView(cursor, table+"_stats_pagelen_difauthors")
