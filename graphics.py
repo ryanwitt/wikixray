@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -89,7 +90,7 @@ class graphicRpy(graphic):
     typeDict={"png":".png", "eps":".eps","pdf":".pdf"}
     def __init__(self, filePath):
         super(graphicRpy, self).__init__(filePath)
-    
+        
     def createGraphic(self, filename, data, graphType):
         super(graphicRpy, self).createGraphic(filename, data)
         if graphType not in self.typeDict:
@@ -435,6 +436,7 @@ class graphicHistogram(graphicR):
         """)
 ##        Complete the script with accurate values
         script=scriptTemplate.safe_substitute(dataFile=self.dataPath+"histogram.data",\
+        infoFile=self.dataPath+"histogram.info",\
         dev=self.graphDev,plotFile=self.filePath+self.filename,ext=self.graphExt, xlb=xlabst, ylb=ylabst, mainT=mainTitle)
         #######################################################
         #Print the GNU R script to a file

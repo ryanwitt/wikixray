@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-3.9.dtd">
 <!-- Project file for project WikiXRay -->
-<!-- Saved: 2007-12-12, 15:01:49 -->
+<!-- Saved: 2007-12-24, 20:16:36 -->
 <!-- Copyright (C) 2007 Felipe Ortega, glimmer_phoenix@yahoo.es -->
 <Project version="3.9">
   <ProgLanguage mixed="0">Python</ProgLanguage>
@@ -50,6 +50,9 @@
     <Source>
       <Name>launcher.py</Name>
     </Source>
+    <Source>
+      <Name>graphRMySQL.py</Name>
+    </Source>
   </Sources>
   <Forms>
   </Forms>
@@ -66,10 +69,10 @@
     <VcsType>None</VcsType>
   </Vcs>
   <FiletypeAssociations>
-    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ui.h" type="FORMS" />
-    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
     <FiletypeAssociation pattern="*.ui" type="FORMS" />
+    <FiletypeAssociation pattern="*.idl" type="INTERFACES" />
+    <FiletypeAssociation pattern="*.py" type="SOURCES" />
     <FiletypeAssociation pattern="*.ptl" type="SOURCES" />
   </FiletypeAssociations>
 </Project>

@@ -1,3 +1,4 @@
+# coding=utf8
 def process_admins(idioma):
     f=open('admins_'+idioma+'.txt')
     try:

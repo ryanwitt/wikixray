@@ -1,6 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2007-12-12, 15:01:49 -->
+<!-- Saved: 2008-02-13, 01:13:29 -->
 <Tasks version="3.8">
+  <Task priority="1" completed="0" bugfix="1">
+    <Description>FIXME: repeat executions with different percentages</Description>
+    <Created>2008-02-10, 18:23:02</Created>
+    <Resource>
+      <Filename>
+        <Name>performer.py</Name>
+      </Filename>
+      <Linenumber>297</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: add periodified plotbars for topFractionCommiters</Description>
+    <Created>2008-02-10, 18:23:02</Created>
+    <Resource>
+      <Filename>
+        <Name>performer.py</Name>
+      </Filename>
+      <Linenumber>298</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:jfelipe-New commiters generations</Description>
+    <Created>2008-02-10, 18:23:02</Created>
+    <Resource>
+      <Filename>
+        <Name>performer.py</Name>
+      </Filename>
+      <Linenumber>433</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Print report status to log file</Description>
+    <Created>2008-02-10, 18:23:20</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax.py</Name>
+      </Filename>
+      <Linenumber>254</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: jfelipe- Think about implementing strip of wiki text and special HTML codes</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>602</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>664</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>670</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>676</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>681</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-10, 18:23:27</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>686</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: READ IN BEGINNING PYTHON ABOUT ATTRIBUTES INSTEAD OF GET METHODS</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>63</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: IMPLEMENTAR FUNCIONES QUE SAQUEN PARTIDO DE LAS REGRESIONES</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>968</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Q-Q PLOTS!!!!!</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>971</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Plot.ts()</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>972</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: plot(stl(x,window="?"))</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>973</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: fit&lt;-StructTS()+tsdiag(fit)</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>974</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: tsSmooth()</Description>
+    <Created>2008-02-10, 20:15:48</Created>
+    <Resource>
+      <Filename>
+        <Name>graphRMySQL.py</Name>
+      </Filename>
+      <Linenumber>975</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Print report status to log file</Description>
+    <Created>2008-02-13, 01:07:05</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax_research.py</Name>
+      </Filename>
+      <Linenumber>267</Linenumber>
+    </Resource>
+  </Task>
 </Tasks>

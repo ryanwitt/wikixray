@@ -64,9 +64,21 @@ CREATE TABLE /*$wgDBprefix*/revision (
   -- Uncompressed length in bytes of the revision's current source text.
   rev_len int NOT NULL,
   -- Number of letters of the revision's current source text.
-  rev_letters int NOT NULL,
+  rev_num_letters int NOT NULL,
   -- Number of words of the revision's current source text.
-  rev_words int NOT NULL,
+  rev_num_words int NOT NULL,
+  -- Number of highlighted words
+  rev_num_highwords int NOT NULL,
+  -- Number of special links
+  rev_num_special int NOT NULL,
+  -- Number of internal links
+  rev_num_inlinks int NOT NULL,
+  -- Number of external links
+  rev_num_outlinks int NOT NULL,
+  -- Number of translations to other language editions
+  rev_num_trans int NOT NULL,
+  -- Number of sections
+  rev_num_sections int NOT NULL,
   -- Key to revision.rev_id
   -- This field is used to add support for a tree structure (The Adjacency List Model)
   rev_parent_id int unsigned default NULL,
@@ -88,9 +100,58 @@ CREATE TABLE /*$wgDBprefix*/revision (
 ) /*$wgDBTableOptions*/ MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
 
 --Special table storing info about namespaces
-
 CREATE TABLE namespaces (
   name varchar(30),
   code int(3),
   PRIMARY KEY name (name)
 );
+
+--Table for highlighted words in each revision
+CREATE TABLE highlights (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL auto_increment,
+  -- Highlighted text
+  rev_highwords text default '',
+  PRIMARY KEY rev_id (rev_id),
+  UNIQUE INDEX rev_id (rev_id)
+)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+
+--Table for special links in each revision
+CREATE TABLE special (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL auto_increment,
+  -- Special links
+  rev_special text default '',
+  PRIMARY KEY rev_id (rev_id),
+  UNIQUE INDEX rev_id (rev_id)
+)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+
+--Table for inlinks links in each revision
+CREATE TABLE inlinks (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL auto_increment,
+  -- Special links
+  rev_inlinks text default '',
+  PRIMARY KEY rev_id (rev_id),
+  UNIQUE INDEX rev_id (rev_id)
+)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+
+--Table for special links in each revision
+CREATE TABLE outlinks (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL auto_increment,
+  -- Special links
+  rev_outlinks text default '',
+  PRIMARY KEY rev_id (rev_id),
+  UNIQUE INDEX rev_id (rev_id)
+)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+
+--Table for special links in each revision
+CREATE TABLE translations (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL auto_increment,
+  -- Special links
+  rev_trans text default '',
+  PRIMARY KEY rev_id (rev_id),
+  UNIQUE INDEX rev_id (rev_id)
+)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;

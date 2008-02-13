@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -182,7 +183,7 @@ class dump(object):
 
 if __name__ == '__main__':
     conf=q.qA_conf()
-    foobar=dump(dumptype="standard",msqlu=conf.msqlu, msqlp=conf.msqlp)
+    foobar=dump(dumptype="research",msqlu=conf.msqlu, msqlp=conf.msqlp)
     foobar.download()
     foobar.decompress()
 

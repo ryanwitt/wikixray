@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -32,7 +33,7 @@ import math, os, string, Numeric
 class analysisPerformer:
     """
     Singleton class containing tasks and methods for a graphical quantitative analysis of each
-    language version, using graphic objects
+    language version, using graphic objects provided by graphics.py
     """
     def __init__(self, language, graphType):
 ##        Create directory tree to store data results and graphics for this language

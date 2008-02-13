@@ -1,6 +1,6 @@
 
-R : Copyright 2006, The R Foundation for Statistical Computing
-Version 2.3.1 (2006-06-01)
+R version 2.5.1 (2007-06-27)
+Copyright (C) 2007 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 
 R es un software libre y viene sin GARANTIA ALGUNA.
@@ -8,76 +8,17 @@ Usted puede redistribuirlo bajo ciertas circunstancias.
 Escriba 'license()' o 'licence()' para detalles de distribucion.
 
 R es un proyecto colaborativo con muchos contribuyentes.
-Escriba 'contributors()' para obtener mas informacion y
-'citation()' para saber como citar R o paquetes de R en publicaciones.
+Escriba 'contributors()' para obtener más información y
+'citation()' para saber cómo citar R o paquetes de R en publicaciones.
 
 Escriba 'demo()' para demostraciones, 'help()' para el sistema on-line de ayuda,
 o 'help.start()' para abrir el sistema de ayuda HTML con su navegador.
 Escriba 'q()' para salir de R.
 
-> #This script plots graphics for measuring wikipedia
 > 
-> #Read input and output files names list
-> input=scan("data/measuring_files_names.data", list(""))
-> filenames=input[[1]]
-> 
-> input=scan("data/measuring_files_out.data", list(""))
-> filenames_out=input[[1]]
-> 
-> input=scan(filenames[1], list(""))
-> totalEdits=input[[1]]
-> 
-> input=scan(filenames[2], list(""))
-> noannonsEdits=input[[1]]
-> 
-> input=scan(filenames[3], list(""))
-> annonsEdits=input[[1]]
-> 
-> #Probar a hacerlo con escala logaritmica, por si acaso
-> png(filenames_out[1])
-> plot(totalEdits, lty=3, col=1, main="Total edits per author", xlab="authors", ylab="tot_num_edtis")
-> lines(lowess(totalEdits), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> png(filenames_out[2])
-> plot(noannonsEdits, log="y", lty=3, col=1, main="Total edits per logged author", xlab="authors", ylab="tot_num_edits")
-> lines(lowess(noannonsEdits), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> png(filenames_out[3])
-> plot(annonsEdits, log="y", lty=3, col=1, main="Total edits per anonymous author", xlab="authors", ylab="tot_num_edits")
-> lines(lowess(annonsEdits), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> 
-> input=scan(filenames[4], list(""))
-> autperarticdesc=input[[1]]
-> 
-> input=scan(filenames[5], list(""))
-> articperautdesc=input[[1]]
-> 
-> input=scan(filenames[6], list(""))
-> articperannondesc=input[[1]]
-> 
-> png(filenames_out[4])
-> plot(autperarticdesc, log="y",lty=3, col=1, main="Number of different authors per article", xlab="articles", ylab="tot_num_authors")
-> lines(lowess(autperarticdesc), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> png(filenames_out[5])
-> plot(articperautdesc, log="y", lty=3, col=1, main="Number of different articles per logged author", xlab="authors", ylab="tot_num_articles")
-> lines(lowess(articperautdesc), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> png(filenames_out[6])
-> plot(articperannondesc, log="y", lty=3, col=1, main="Number of different articles per anonymous author", xlab="authors", ylab="tot_num_articles")
-> lines(lowess(articperannondesc), log="y",lty=3, col=2)
-> dev.off()
-null device 
-          1 
-> 
+>         #Script to plot the Lorenz curve and Gini coeff
+>         #: by Gini : inherits from graphRMySQL
+>         #Load library
+>         library(RMySQL)
+>         #Connect to the DB
+>         con <- dbConnect(dbDriver("MySQL"),dbname="wx_glwiki_research",user="pepito",password="fenix")

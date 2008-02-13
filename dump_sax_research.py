@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -11,7 +12,7 @@
 #############################################
 # Author: Jose Felipe Ortega Soto                                                             
 
-import sys,os,codecs,string, datetime, random
+import sys,os,codecs,string, datetime, random, re
 import dbaccess
 from xml.sax import saxutils,make_parser
 from xml.sax.handler import feature_namespaces, ContentHandler
@@ -74,6 +75,25 @@ class wikiHandler(ContentHandler):
         self.isRedirect='0'
         self.isStub='0'
         self.isMinor='0'
+        self.inlinks=None # internal links
+        self.outlinks=None # external links
+        self.trans=None # translations to other language editions
+        self.sections=None # sections (no matter their level)
+        self.highwords=None #highlighted words (bold/italics/bold+italics)
+        self.special=None #rev_text, special links filtered out
+        ########################################
+        ##REGEXPS
+        ########################################
+        self.pathighlight=r"\'\'+"#Regexp matching bold/italics/bold+italics wikitags
+        self.pathighwords=r"\'\'+.*\'\'+" #Regexp for highlighted words
+        self.pathtml=r"\<[^\>]+\>" #Regexp matching HTML tags
+        self.patunicode=r"\&\w+\;|\&\#\d+\;|[\xc0-\xf7][\x80-\xbf]+" #Regexp matching unicode chars
+        self.patspecial=r"\[\[[^\:\]]+\:[^\]]*\]\]" #Regexp matching special inlinks (image/category/interwiki)
+        self.patinlink=r"\[\[.*\]\]" #Regexp matching inlinks (after filtering image/category/interwiki links)
+        self.patoutlink=r"\s\[[^\[\]]*\]|http[s]?://" #Regexp matching outlinks
+        self.patsection=r"\=\=+[\s]*[^\=]*[\s]*\=\=+" #Regexp matching section titles
+        self.pattrans=r"\[\[..[.]?:"#Regexp matching translation links
+        self.patitemize=r"\n\**" #Regexp matching itemize bullets and line branches
         self.fileErrPath="./errors.log"
         self.revinsert=''
         self.pageinsert=''
@@ -149,7 +169,23 @@ class wikiHandler(ContentHandler):
                 
             ####CONSTRUCTION OF EXTENDED INSERTS FOR REVISIONS (RESEARCH VERSION)######
             ##Values order: (rev_id, rev_page, rev_user, rev_user_text, rev_timestamp,
-            ##rev_len, rev_letters, rev_words, rev_parent_id, rev_is_redirect, rev_is_stub, rev_is_minor, rev_comment)
+            ##rev_len, rev_letters_raw, rev_words_raw, rev_words_filter, rev_in_links, rev_out_links, rev_trans,
+            ##rev_sections, rev_bolds, rev_italics, rev_bolditalics
+            ##rev_parent_id, rev_is_redirect, rev_is_stub, rev_is_minor, rev_comment)
+            ##Calculation of additional fancy statistics AND
+            ##Detection and stripping of wiki tags and HTML tags
+            ##We also store inlinks, outlinks and special links
+            self.highwords=re.findall(self.pathighwords, self.rev_dict['text']) #detect highlighted words
+            self.rev_dict['text']=re.sub(self.pathighlight, '', self.rev_dict['text']) #filter highlight tags
+            self.rev_dict['text']=re.sub(self.pathtml, '', self.rev_dict['text']) #filter HTML tags
+            self.rev_dict['text']=re.sub(self.patunicode, 'X', self.rev_dict['text']) #convert unicode chars to X
+            self.special=re.findall(self.patspecial, self.rev_dict['text']) #detect special links
+            self.inlinks=re.findall(self.patinlink, self.rev_dict['text']) #detect inlinks
+            self.outlinks=re.findall(self.patoutlink, self.rev_dict['text']) #detect outlinks
+            self.trans=re.findall(self.pattrans, self.rev_dict['text']) #detect translation links
+            self.rev_dict['text']=re.sub(self.patspecial, '', self.rev_dict['text']) #filter out special links (after detecting trans)
+            self.sections=re.findall(self.patsection, self.rev_dict['text']) #detect sections
+            self.rev_dict['text']=re.sub(self.patitemize, '', self.rev_dict['text']) #filter out itemize bullets and line branches
             # Build current row for revinsert
             newrevinsert="("+self.rev_dict['id']+","+self.page_dict['id']+","+\
             self.rev_dict['rev_user']+","+'"'+self.rev_dict['username'].replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')+\
@@ -157,6 +193,8 @@ class wikiHandler(ContentHandler):
             '"'+","+str(2*len(self.rev_dict['text']))+\
             ","+str(len(self.rev_dict['text']))+\
             ","+str(len(self.rev_dict['text'].split())) +\
+            ","+str(len(self.highwords))+","+str(len(self.special))+\
+            ","+str(len(self.inlinks))+","+str(len(self.outlinks))+","+str(len(self.trans))+","+str(len(self.sections))+\
             ","+self.prior_rev_id+","+self.isRedirect+","+self.isStub+","+self.isMinor
             if self.rev_dict.has_key('comment'):
                 newrevinsert+=","+'"'+self.rev_dict['comment'].replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')+'"'
@@ -188,6 +226,7 @@ class wikiHandler(ContentHandler):
                     # DON'T WRITE SQL TO FILES, GENERATE ENCONDED SQL STREAM FOR MYSQL
                     self.revinsert+=";"
                     print self.revinsert.encode('utf_8')
+                    print self.revinsert.encode('utf_8')
                 elif self.options.monitor:
                     while 1:
                         try:
@@ -208,6 +247,8 @@ class wikiHandler(ContentHandler):
             self.rev_dict.clear()
             self.stack.pop()
             self.isMinor='0'
+            self.inlinks=None; self.outlinks=None; self.trans=None; self.sections=None
+            self.highwords=None; self.special=None
             self.rev_num+=1
             if self.options.verbose and self.options.log is None:
                 # Display status report

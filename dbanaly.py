@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -13,7 +14,7 @@
 
 """
 Creates additional database views,  
-creating an adequate interface to access relevant quantitative data (including
+building an adequate interface to access relevant quantitative data (including
 evolution in time of important parameters).
 
 @see: quantAnalay_main
@@ -447,7 +448,7 @@ class dbanaly(object):
         else:
             print "You chose an unsupported time interval.\n"
             print "Please choose one of the following [days, weeks, moths, quarters, years]\n"
-    
+            
     ###########################################################
     
     def __content_evolution(self,cursor, table):
@@ -515,12 +516,14 @@ class dbanaly(object):
     ##    In the first revision of every page, rev_parent==NULL. 
     ##    Later, UNION that group with the first revisions group //Must prove it against testbed dump
     
-    #    Length in bytes of the current rev and the previous one
-        dbaccess.dropView(cursor, table+"_contrib_len")
-        dbaccess.createView(cursor, view=table+"_contrib_len",\
-        columns="rev_id, page_id, author, contrib_len, timestamp",\
+    #    Length in bytes of the current rev from the previous one and time interval between edits (both per page)
+    #    Note: we use a precision of seconds for timestampdiff because that is the smallest interval stored in the dump's timestamps
+        dbaccess.dropView(cursor, table+"_contrib_len_interval")
+        dbaccess.createView(cursor, view=table+"_contrib_len_interval",\
+        columns="rev_id, page_id, author, contrib_len, timestamp, interval",\
         query="(SELECT cur.rev_id, cur.page_id, cur.author, (cur.rev_len-prev.rev_len) AS contrib_len, "+\
-        " cur.rev_timestamp FROM "+table+" AS cur, "+table+\
+        " cur.rev_timestamp, TIMESTAMPDIFF(SECOND,prev.rev_timestamp,cur.rev_timestamp) as interval"+\
+        " FROM "+table+" AS cur, "+table+\
         " AS prev WHERE cur.rev_parent_id IS NOT NULL AND cur.rev_parent_id=prev.rev_id)"+\
         " UNION (SELECT rev_id, page_id, author, rev_len, rev_timestamp FROM "+table+\
         " WHERE rev_parent_id IS NULL)")

@@ -1,3 +1,4 @@
+# coding=utf8
 #############################################
 #      WikiXRay: Quantitative Analysis of Wikipedia language versions                       
 #############################################
@@ -23,10 +24,9 @@ Main module of WikiXRay, responsible for calling the other functional modules.
 @contact:      jfelipe@gsyc.escet.urjc.es
 """
 
-import dbdump, dbanaly, graphics
-import dbanaly
+import dbdump, dbanaly
 import qA_conf as q
-import graphics
+import graphRMySQL
 
 """ 
 STEPS
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     
     #Lista de idiomas que queremos analizar
     #ListaIdiomas=conf.langs
-    ListaIdiomas=["furwiki"]
+    ListaIdiomas=["mtwiki"]
     
     print "STARTING DATABASE DUMP DECOMPRESSION...\n"
     for idioma in ListaIdiomas:
@@ -55,23 +55,23 @@ if __name__ == '__main__':
         dump.decompress()
     print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
     
-    print "INITIATING DATABASE ANALYSIS...\n"
-        
-    for idioma in ListaIdiomas:
-        print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly=dbanaly.dbanaly(conf,idioma)
-        print "AUTHOR ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoAuthors()
-        print "AUTHOR ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        print "ARTICLE ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoPages()
-        print "ARTICLE ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.infoContents()
-        print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        dbanaly.generalStatistics()
-        print "GENERAL STATISTICS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
-        
+##    print "INITIATING DATABASE ANALYSIS...\n"
+##        
+##    for idioma in ListaIdiomas:
+##        print "ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        dbanaly=dbanaly.dbanaly(conf,idioma)
+##        print "AUTHOR ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        dbanaly.infoAuthors()
+##        print "AUTHOR ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        print "ARTICLE ANALYSIS SET UP FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        dbanaly.infoPages()
+##        print "ARTICLE ANALYSIS SET UP COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        print "INITIATING CONTENTS ANALYSIS FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        #dbanaly.infoContents()
+##        print "CONTENTS ANALYSIS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        #dbanaly.generalStatistics()
+##        print "GENERAL STATISTICS COMPLETED FOR LANGUAGE VERSION " + idioma + "\n\n"
+##        
 ##    print "GENERATING GRAPHICS AND STATISTICAL RESULTS FOR LANGUAGE VERSION " + idioma + "\n\n"
 ##    graphics.work(ListaIdiomas)
 ##    print "GRAPHICS AND STATISTICAL RESULTS GENERATED FOR LANGUAGE VERSION " + idioma + "\n\n"
