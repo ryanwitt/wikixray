@@ -94,7 +94,14 @@ class wikiHandler(ContentHandler):
         self.patsection=r"\=\=+[\s]*[^\=]*[\s]*\=\=+" #Regexp matching section titles
         self.pattrans=r"\[\[..[.]?:"#Regexp matching translation links
         self.patitemize=r"\n\**" #Regexp matching itemize bullets and line branches
+        self.patdumb=r"\)\(" #A rapid solution to concatenate tuples in special instert strings
         self.fileErrPath="./errors.log"
+        self.highwords_dict={}; self.special_dict={}; self.inlinks_dict={};
+        self.outlinks_dict={}; self.trans_dict={}
+        self.highwords_id=1; self.special_id=1; self.inlinks_id=1; self.outlinks_id=1
+        self.trans_id=1;
+        self.highwords_rev_insert=[]; self.special_rev_insert=[]; self.inlinks_rev_insert=[]
+        self.outlinks_rev_insert=[]; self.trans_rev_insert=[];
         self.revinsert=''
         self.pageinsert=''
         self.revinsertrows=0
@@ -152,10 +159,13 @@ class wikiHandler(ContentHandler):
         elif name=='contributor':
             ##Pop contributor tag from the stack
             self.stack.pop()
-            
+        #####################################################
+        ## END OF REVISION
+        #####################################################
         elif name=='revision':
             self.rev_count+=1
             ##Store whether this is a redirect or stub page or not
+            ##TODO: Substitute the find command with a regexp
             if len(self.rev_dict['text'])>0:
                 if string.upper(self.rev_dict['text'][0:9])=='#REDIRECT':
                     self.isRedirect='1'
@@ -175,15 +185,17 @@ class wikiHandler(ContentHandler):
             ##Calculation of additional fancy statistics AND
             ##Detection and stripping of wiki tags and HTML tags
             ##We also store inlinks, outlinks and special links
-            self.highwords=re.findall(self.pathighwords, self.rev_dict['text']) #detect highlighted words
-            self.rev_dict['text']=re.sub(self.pathighlight, '', self.rev_dict['text']) #filter highlight tags
             self.rev_dict['text']=re.sub(self.pathtml, '', self.rev_dict['text']) #filter HTML tags
             self.rev_dict['text']=re.sub(self.patunicode, 'X', self.rev_dict['text']) #convert unicode chars to X
+            self.highwords=re.findall(self.pathighwords, self.rev_dict['text']) #detect highlighted words
+            for i in range(len(self.highwords)):
+                self.highwords[i]=re.sub(self.pathighlight,'', self.highwords[i]) #Filter bold/italics tags
+            self.rev_dict['text']=re.sub(self.pathighlight, '', self.rev_dict['text']) #filter highlight tags
             self.special=re.findall(self.patspecial, self.rev_dict['text']) #detect special links
-            self.inlinks=re.findall(self.patinlink, self.rev_dict['text']) #detect inlinks
-            self.outlinks=re.findall(self.patoutlink, self.rev_dict['text']) #detect outlinks
             self.trans=re.findall(self.pattrans, self.rev_dict['text']) #detect translation links
             self.rev_dict['text']=re.sub(self.patspecial, '', self.rev_dict['text']) #filter out special links (after detecting trans)
+            self.inlinks=re.findall(self.patinlink, self.rev_dict['text']) #detect inlinks
+            self.outlinks=re.findall(self.patoutlink, self.rev_dict['text']) #detect outlinks
             self.sections=re.findall(self.patsection, self.rev_dict['text']) #detect sections
             self.rev_dict['text']=re.sub(self.patitemize, '', self.rev_dict['text']) #filter out itemize bullets and line branches
             # Build current row for revinsert
@@ -201,6 +213,57 @@ class wikiHandler(ContentHandler):
             else:
                 newrevinsert+=",''"
             newrevinsert+=")"
+            #############################################
+            ## CONSTRUCT DICTIONARIES WITH SPECIAL ITEMS
+            #############################################
+            for item in self.highwords:
+                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+                stumble=self.highwords_dict.get(item)
+                if (stumble==None):
+                    self.highwords_dict[item]=self.highwords_id
+                    self.highwords_rev_insert.append((self.rev_dict['id'],self.highwords_id))
+                    self.highwords_id+=1
+                else:
+                    self.highwords_rev_insert.append((self.rev_dict['id'],stumble))
+            for item in self.special:
+                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+                stumble=self.special_dict.get(item)
+                if (stumble==None):
+                    self.special_dict[item]=self.special_id
+                    self.special_rev_insert.append((self.rev_dict['id'], self.special_id))
+                    self.special_id+=1
+                else:
+                    self.special_rev_insert.append((self.rev_dict['id'], stumble))
+            for item in self.inlinks:
+                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+                stumble=self.inlinks_dict.get(item)
+                if (stumble==None):
+                    self.inlinks_dict[item]=self.inlinks_id
+                    self.inlinks_rev_insert.append((self.rev_dict['id'], self.inlinks_id))
+                    self.inlinks_id+=1
+                else:
+                    self.inlinks_rev_insert.append((self.rev_dict['id'], stumble))
+            for item in self.outlinks:
+                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+                stumble=self.outlinks_dict.get(item)
+                if (stumble==None):
+                    self.outlinks_dict[item]=self.outlinks_id
+                    self.outlinks_rev_insert.append((self.rev_dict['id'], self.outlinks_id))
+                    self.outlinks_id+=1
+                else:
+                    self.outlinks_rev_insert.append((self.rev_dict['id'], stumble))
+            for item in self.trans:
+                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+                stumble=self.trans_dict.get(item)
+                if (stumble==None):
+                    self.trans_dict[item]=self.trans_id
+                    self.trans_rev_insert.append((self.rev_dict['id'], self.trans_id))
+                    self.trans_id+=1
+                else:
+                    self.trans_rev_insert.append((self.rev_dict['id'], stumble))
+            ##############################################
+            ## LOOK-AHEAD ALGORITHM
+            ##############################################
             if self.revinsertrows==0:
                 #Always allow at least one row in extended inserts
                 self.revinsert="INSERT INTO revision VALUES"+newrevinsert
@@ -247,8 +310,8 @@ class wikiHandler(ContentHandler):
             self.rev_dict.clear()
             self.stack.pop()
             self.isMinor='0'
-            self.inlinks=None; self.outlinks=None; self.trans=None; self.sections=None
-            self.highwords=None; self.special=None
+            self.inlinks=[]; self.outlinks=[]; self.trans=[]; self.sections=[]
+            self.highwords=[]; self.special=[]
             self.rev_num+=1
             if self.options.verbose and self.options.log is None:
                 # Display status report
@@ -259,13 +322,26 @@ class wikiHandler(ContentHandler):
                         print >> sys.stderr, "page %d (%f pags. per sec.), revision %d (%f revs. per sec.)"\
                         % (self.page_num, 1e6*float(self.page_num)/self.timeDelta.microseconds,\
                         self.rev_num, 1e6*float(self.rev_num)/self.timeDelta.microseconds)
+                        self.printfile = codecs.open(self.fileErrPath,'a','utf_8')
+                        self.printfile.write("page "+str(self.page_num)+" ("+\
+                        str( 1e6*float(self.page_num)/self.timeDelta.microseconds)+" pags. per sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(1e6*float(self.rev_num)/self.timeDelta.microseconds)+" revs. per sec.)\n")
+                        self.printfile.close()
                     else:
                         print >> sys.stderr, "page %d (%f pags. per sec.), revision %d (%f revs. per sec.)"\
                         % (self.page_num, float(self.page_num)/self.timeDelta.seconds,\
                         self.rev_num, float(self.rev_num)/self.timeDelta.seconds)
+                        self.printfile = codecs.open(self.fileErrPath,'a','utf_8')
+                        self.printfile.write("page "+str(self.page_num)+" ("+\
+                        str( float(self.page_num)/self.timeDelta.seconds)+" pags. per sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
+                        self.printfile.close()
             if self.options.verbose and self.options.log is not None:
                 # TODO: Print report status to log file
                 pass
+        #################################################
+        ## END OF PAGE
+        #################################################
         elif name=='page':
             ################################################
             #We must write the las revinsert before finishing this page
@@ -290,6 +366,144 @@ class wikiHandler(ContentHandler):
             #Reset status vars
             self.revinsertrows=0
             self.revinsertsize=0
+            ################################################
+            #GENERATE AND COMMIT SPECIAL VALUES INSERTS FOR ALL REVISIONS OF THIS PAGE
+            # CREATE INSERT STRINGS FROM values
+            ##HIGHLIGHTED WORDS
+            self.high_insert_st='INSERT INTO highlight VALUES'
+            for item in self.highwords_dict.iteritems():
+                self.high_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+            self.high_insert_st=re.sub(self.patdumb, "),(", self.high_insert_st)
+##            self.debug(self.high_insert_st)
+            self.high_rev_insert_st='INSERT INTO rev_highlight VALUES'
+            for item in self.highwords_rev_insert:
+                self.high_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+            self.high_rev_insert_st=re.sub(self.patdumb, "),(", self.high_rev_insert_st)
+##            self.debug(self.high_rev_insert_st)
+            ##SPECIAL LINKS
+            self.special_insert_st='INSERT INTO special VALUES'
+            for item in self.special_dict.iteritems():
+                self.special_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+            self.special_insert_st=re.sub(self.patdumb,"),(", self.special_insert_st)
+##            self.debug(self.special_insert_st)
+            self.special_rev_insert_st='INSERT INTO rev_special VALUES'
+            for item in self.special_rev_insert:
+                self.special_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+            self.special_rev_insert_st=re.sub(self.patdumb,"),(",self.special_rev_insert_st)
+##            self.debug(self.special_rev_insert_st)
+            ##INLINKS
+            self.inlinks_insert_st='INSERT INTO inlink VALUES'
+            for item in self.inlinks_dict.iteritems():
+                self.inlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+            self.inlinks_insert_st=re.sub(self.patdumb,"),(", self.inlinks_insert_st)
+##            self.debug(self.inlinks_insert_st)
+            self.inlinks_rev_insert_st='INSERT INTO rev_inlink VALUES'
+            for item in self.inlinks_rev_insert:
+                self.inlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+            self.inlinks_rev_insert_st=re.sub(self.patdumb,"),(", self.inlinks_rev_insert_st)
+##            self.debug(self.inlinks_rev_insert_st)
+            ##OUTLINKS
+            self.outlinks_insert_st='INSERT INTO outlink VALUES'
+            for item in self.outlinks_dict.iteritems():
+                self.outlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+            self.outlinks_insert_st=re.sub(self.patdumb,"),(", self.outlinks_insert_st)
+##            self.debug(self.outlinks_insert_st)
+            self.outlinks_rev_insert_st='INSERT INTO rev_outlink VALUES'
+            for item in self.outlinks_rev_insert:
+                self.outlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+            self.outlinks_rev_insert_st=re.sub(self.patdumb,"),(",self.outlinks_rev_insert_st)
+##            self.debug(self.outlinks_rev_insert_st)
+            ##TRANSLATION LINKS
+            self.trans_insert_st='INSERT INTO trans VALUES'
+            for item in self.trans_dict.iteritems():
+                self.trans_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+            self.trans_insert_st=re.sub(self.patdumb,"),(",self.trans_insert_st)
+##            self.debug(self.trans_insert_st)
+            self.trans_rev_insert_st='INSERT INTO rev_trans VALUES'
+            for item in self.trans_rev_insert:
+                self.trans_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+            self.trans_rev_insert_st=re.sub(self.patdumb,"),(", self.trans_rev_insert_st)
+##            self.debug(self.trans_rev_insert_st)
+            #COMMIT NEAT INSERTS
+            if self.options.fileout:
+                self.high_insert_st="\n;";self.high_rev_insert_st="\n;"; self.special_insert_st="\n;"
+                self.special_rev_insert_st="\n;"; self.inlinks_insert_st="\n;"; self.inlinks_rev_insert_st="\n;"
+                self.outlinks_insert_st="\n;"; self.outlinks_rev_insert_st="\n;"; self.trans_insert_st="\n;"
+                self.trans_rev_insert_st="\n;"
+            # Write output to SQL file
+            # TODO: get a filename for special inserts
+                self.neatfile = codecs.open('neat.sql','a','utf_8')
+                if len(self.highwords_dict)>0:
+                    self.neatfile.write(self.high_insert_st);
+                    self.neatfile.write(self.high_rev_insert_st);
+                if len(self.special_dict)>0:
+                    self.neatfile.write(self.special_insert_st)
+                    self.neatfile.write(self.special_rev_insert_st);
+                if len(self.inlinks_dict)>0:
+                    self.neatfile.write(self.inlinks_insert_st);
+                    self.neatfile.write(self.inlinks_rev_insert_st)
+                if len(self.outlinks_dict)>0:
+                    self.neatfile.write(self.outlinks_insert_st);
+                    self.neatfile.write(self.outlinks_rev_insert_st)
+                if len(self.trans_dict)>0:
+                    self.neatfile.write(self.trans_insert_st); 
+                    self.neatfile.write(self.trans_rev_insert_st)
+                self.neatfile.close()
+            elif self.options.streamout:
+                # DON'T WRITE SQL TO FILES, GENERATE ENCONDED SQL STREAM FOR MYSQL
+                self.high_insert_st=";";self.high_rev_insert_st=";"; self.special_insert_st=";"
+                self.special_rev_insert_st=";"; self.inlinks_insert_st=";"; self.inlinks_rev_insert_st=";"
+                self.outlinks_insert_st=";"; self.outlinks_rev_insert_st=";"; self.trans_insert_st=";"
+                self.trans_rev_insert_st=";"
+                if len(self.highwords_dict)>0:
+                    print self.high_insert_st.encode('utf_8');
+                    print self.high_rev_insert_st.encode('utf_8')
+                if len(self.special_dict)>0:
+                    print self.special_insert_st.encode('utf_8');
+                    print self.special_rev_insert_st.encode('utf_8')
+                if len(self.inlinks_dict)>0:
+                    print self.inlinks_insert_st.encode('utf_8');
+                    print self.inlinks_rev_insert_st.enconde('utf_8')
+                if len(self.outlinks_dict)>0:
+                    print self.outlinks_insert_st.encode('utf_8'); 
+                    print self.outlinks_rev_insert_st.encode('utf_8')
+                if len(self.trans_dict)>0:
+                    print self.trans_insert_st.encode('utf_8'); 
+                    print self.trans_rev_insert_st.encode('utf_8')
+            elif self.options.monitor:
+                while 1:
+                    try:
+##                        print str(len(self.highwords_dict))+" "+\
+##                        str(len(self.special_dict))+ " "+str(len(self.inlinks_dict))+ " "+\
+##                        str(len(self.outlinks_dict))+ " "+str(len(self.trans_dict))+"\n"
+                        if len(self.highwords_dict)>0:
+                            dbaccess.raw_query_SQL(self.acceso[1], self.high_insert_st.encode('utf_8'))
+                            dbaccess.raw_query_SQL(self.acceso[1], self.high_rev_insert_st.encode('utf_8'))
+                        if len(self.special_dict)>0:
+                            dbaccess.raw_query_SQL(self.acceso[1], self.special_insert_st.encode('utf_8'))
+                            dbaccess.raw_query_SQL(self.acceso[1], self.special_rev_insert_st.encode('utf_8'))
+                        if len(self.inlinks_dict)>0:
+                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_insert_st.encode('utf_8'))
+                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_rev_insert_st.encode('utf_8'))
+                        if len(self.outlinks_dict)>0:
+                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_insert_st.encode('utf_8'))
+                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_rev_insert_st.encode('utf_8'))
+                        if len(self.trans_dict)>0:
+                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_insert_st.encode('utf_8'))
+                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_rev_insert_st.encode('utf_8'))
+                    except (Exception), e:
+                        print e
+                    else:
+                        break
+            #Reset status vars
+            self.high_insert_st=""; self.high_rev_insert_st=""; self.special_insert_st=""
+            self.special_rev_insert_st=""; self.inlinks_insert_st=""; self.inlinks_rev_insert_st=""
+            self.outlinks_insert_st=""; self.outlinks_rev_insert_st=""; self.trans_insert_st=""
+            self.trans_rev_insert_st=""
+            self.highwords_dict={}; self.special_dict={}; self.inlinks_dict={};
+            self.outlinks_dict={}; self.trans_dict={}
+            self.highwords_rev_insert=[]; self.special_rev_insert=[]; self.inlinks_rev_insert=[]
+            self.outlinks_rev_insert=[]; self.trans_rev_insert=[];
             ################################################
             ##Recovering namespace for this page
             if self.nspace_dict.has_key(self.page_dict['title'].split(':')[0]):
@@ -432,7 +646,12 @@ class wikiHandler(ContentHandler):
         print >> sys.stderr, "File successfully parsed..."
         print >> sys.stderr, "page %d (%f pags./sec.), revision %d (%f revs./sec.)" % (self.page_num,\
         float(self.page_num)/self.timeDelta.seconds, self.rev_num, float(self.rev_num)/self.timeDelta.seconds)
-
+    def debug(self, str):
+        self.sqlfile = codecs.open('debug.sql','a','utf_8')
+        self.sqlfile.write(str)
+        self.sqlfile.close()
+######################################################################
+######################################################################
 ##Main zone
 if __name__ == '__main__':
     usage = "usage: %prog [options]"

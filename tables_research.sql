@@ -4,7 +4,7 @@
 CREATE TABLE /*$wgDBprefix*/page (
   -- Unique identifier number. The page_id will be preserved across
   -- edits and rename operations, but not deletions and recreations.
-  page_id int unsigned NOT NULL auto_increment,
+  page_id int unsigned NOT NULL ,
   
   -- A page name is broken into a namespace and a title.
   -- The namespace keys are UI-language-independent constants,
@@ -46,7 +46,7 @@ CREATE TABLE /*$wgDBprefix*/page (
 -- to the text storage backend.
 --
 CREATE TABLE /*$wgDBprefix*/revision (
-  rev_id int unsigned NOT NULL auto_increment,
+  rev_id int unsigned NOT NULL ,
   
   -- Key to page_id. This should _never_ be invalid.
   rev_page int unsigned NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE /*$wgDBprefix*/revision (
 
   PRIMARY KEY rev_page_id (rev_page, rev_id),
   UNIQUE INDEX rev_id (rev_id)
-) /*$wgDBTableOptions*/ MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+) /*$wgDBTableOptions*/ MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Special table storing info about namespaces
 CREATE TABLE namespaces (
@@ -107,51 +107,76 @@ CREATE TABLE namespaces (
 );
 
 --Table for highlighted words in each revision
-CREATE TABLE highlights (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL auto_increment,
+CREATE TABLE highlight (
+  highword_id int unsigned NOT NULL,
   -- Highlighted text
-  rev_highwords text default '',
-  PRIMARY KEY rev_id (rev_id),
-  UNIQUE INDEX rev_id (rev_id)
-)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+  highword_text text NOT NULL default '',
+  PRIMARY KEY highword_id (highword_id)
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+
+-- Intermediate table linking highword_id with multiple rev_id
+CREATE TABLE rev_highlight (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL ,
+  highword_id int unsigned NOT NULL
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Table for special links in each revision
 CREATE TABLE special (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL auto_increment,
+  special_id int unsigned NOT NULL ,
   -- Special links
-  rev_special text default '',
-  PRIMARY KEY rev_id (rev_id),
-  UNIQUE INDEX rev_id (rev_id)
-)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+  special_text text NOT NULL default '',
+  PRIMARY KEY special_id (special_id)
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+
+-- Intermediate table linking highword_id with multiple rev_id
+CREATE TABLE rev_special (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL,
+  special_id int unsigned NOT NULL
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Table for inlinks links in each revision
-CREATE TABLE inlinks (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL auto_increment,
+CREATE TABLE inlink (
+  inlink_id int unsigned NOT NULL ,
   -- Special links
-  rev_inlinks text default '',
-  PRIMARY KEY rev_id (rev_id),
-  UNIQUE INDEX rev_id (rev_id)
-)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+  inlink_text text NOT NULL default '',
+  PRIMARY KEY inlink_id (inlink_id)
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+
+-- Intermediate table linking inlink_id with multiple rev_id
+CREATE TABLE rev_inlink (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL,
+  inlink_id int unsigned NOT NULL
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Table for special links in each revision
-CREATE TABLE outlinks (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL auto_increment,
+CREATE TABLE outlink (
+  outlink_id int unsigned NOT NULL ,
   -- Special links
-  rev_outlinks text default '',
-  PRIMARY KEY rev_id (rev_id),
-  UNIQUE INDEX rev_id (rev_id)
-)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+  outlink_text text NOT NULL default '',
+  PRIMARY KEY outlink_id (outlink_id)
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
---Table for special links in each revision
-CREATE TABLE translations (
+-- Intermediate table linking outlink_id with multiple rev_id
+CREATE TABLE rev_outlink (
   -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL auto_increment,
+  rev_id int unsigned NOT NULL,
+  outlink_id int unsigned NOT NULL
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+
+--Table for translations links in each revision
+CREATE TABLE trans (
+  trans_id int unsigned NOT NULL ,
   -- Special links
-  rev_trans text default '',
-  PRIMARY KEY rev_id (rev_id),
-  UNIQUE INDEX rev_id (rev_id)
-)MAX_ROWS=10000000 AVG_ROW_LENGTH=1024;
+  trans_text text NOT NULL default '',
+  PRIMARY KEY trans_id (trans_id)
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+
+-- Intermediate table linking translation_id with multiple rev_id
+CREATE TABLE rev_trans (
+  -- Foreing key to rev_id
+  rev_id int unsigned NOT NULL,
+  trans_id int unsigned NOT NULL
+)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;

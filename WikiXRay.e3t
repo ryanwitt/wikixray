@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2008-02-13, 01:13:29 -->
+<!-- Saved: 2008-02-17, 02:36:52 -->
 <Tasks version="3.8">
   <Task priority="1" completed="0" bugfix="1">
     <Description>FIXME: repeat executions with different percentages</Description>
@@ -174,13 +174,33 @@
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO: Print report status to log file</Description>
-    <Created>2008-02-13, 01:07:05</Created>
+    <Description>TODO: Substitute the find command with a regexp</Description>
+    <Created>2008-02-17, 02:14:37</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
       </Filename>
-      <Linenumber>267</Linenumber>
+      <Linenumber>168</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Print report status to log file</Description>
+    <Created>2008-02-17, 02:14:37</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax_research.py</Name>
+      </Filename>
+      <Linenumber>340</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: get a filename for special inserts</Description>
+    <Created>2008-02-17, 02:14:37</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax_research.py</Name>
+      </Filename>
+      <Linenumber>434</Linenumber>
     </Resource>
   </Task>
 </Tasks>
