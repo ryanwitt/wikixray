@@ -96,6 +96,8 @@ class wikiHandler(ContentHandler):
         self.patitemize=r"\n\**" #Regexp matching itemize bullets and line branches
         self.patdumb=r"\)\(" #A rapid solution to concatenate tuples in special instert strings
         self.fileErrPath="./errors.log"
+        #TODO: Solve lookup in global scope if the special item did not show up in any previous revision
+        #of the whole dump (maybe lookup query to DB??)
         self.highwords_dict={}; self.special_dict={}; self.inlinks_dict={};
         self.outlinks_dict={}; self.trans_dict={}
         self.highwords_id=1; self.special_id=1; self.inlinks_id=1; self.outlinks_id=1
@@ -187,11 +189,11 @@ class wikiHandler(ContentHandler):
             ##We also store inlinks, outlinks and special links
             self.rev_dict['text']=re.sub(self.pathtml, '', self.rev_dict['text']) #filter HTML tags
             self.rev_dict['text']=re.sub(self.patunicode, 'X', self.rev_dict['text']) #convert unicode chars to X
-            self.highwords=re.findall(self.pathighwords, self.rev_dict['text']) #detect highlighted words
-            for i in range(len(self.highwords)):
-                self.highwords[i]=re.sub(self.pathighlight,'', self.highwords[i]) #Filter bold/italics tags
+##            self.highwords=re.findall(self.pathighwords, self.rev_dict['text']) #detect highlighted words
+##            for i in range(len(self.highwords)):
+##                self.highwords[i]=re.sub(self.pathighlight,'', self.highwords[i]) #Filter bold/italics tags
             self.rev_dict['text']=re.sub(self.pathighlight, '', self.rev_dict['text']) #filter highlight tags
-            self.special=re.findall(self.patspecial, self.rev_dict['text']) #detect special links
+##            self.special=re.findall(self.patspecial, self.rev_dict['text']) #detect special links
             self.trans=re.findall(self.pattrans, self.rev_dict['text']) #detect translation links
             self.rev_dict['text']=re.sub(self.patspecial, '', self.rev_dict['text']) #filter out special links (after detecting trans)
             self.inlinks=re.findall(self.patinlink, self.rev_dict['text']) #detect inlinks
@@ -204,9 +206,9 @@ class wikiHandler(ContentHandler):
             '"'+","+'"'+self.rev_dict['timestamp']+\
             '"'+","+str(2*len(self.rev_dict['text']))+\
             ","+str(len(self.rev_dict['text']))+\
-            ","+str(len(self.rev_dict['text'].split())) +\
-            ","+str(len(self.highwords))+","+str(len(self.special))+\
-            ","+str(len(self.inlinks))+","+str(len(self.outlinks))+","+str(len(self.trans))+","+str(len(self.sections))+\
+            ","+str(len(self.rev_dict['text'].split())) 
+##            ","+str(len(self.highwords))+","+str(len(self.special))+\
+            newrevinsert+=","+str(len(self.inlinks))+","+str(len(self.outlinks))+","+str(len(self.trans))+","+str(len(self.sections))+\
             ","+self.prior_rev_id+","+self.isRedirect+","+self.isStub+","+self.isMinor
             if self.rev_dict.has_key('comment'):
                 newrevinsert+=","+'"'+self.rev_dict['comment'].replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')+'"'
@@ -216,24 +218,24 @@ class wikiHandler(ContentHandler):
             #############################################
             ## CONSTRUCT DICTIONARIES WITH SPECIAL ITEMS
             #############################################
-            for item in self.highwords:
-                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
-                stumble=self.highwords_dict.get(item)
-                if (stumble==None):
-                    self.highwords_dict[item]=self.highwords_id
-                    self.highwords_rev_insert.append((self.rev_dict['id'],self.highwords_id))
-                    self.highwords_id+=1
-                else:
-                    self.highwords_rev_insert.append((self.rev_dict['id'],stumble))
-            for item in self.special:
-                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
-                stumble=self.special_dict.get(item)
-                if (stumble==None):
-                    self.special_dict[item]=self.special_id
-                    self.special_rev_insert.append((self.rev_dict['id'], self.special_id))
-                    self.special_id+=1
-                else:
-                    self.special_rev_insert.append((self.rev_dict['id'], stumble))
+##            for item in self.highwords:
+##                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+##                stumble=self.highwords_dict.get(item)
+##                if (stumble==None):
+##                    self.highwords_dict[item]=self.highwords_id
+##                    self.highwords_rev_insert.append((self.rev_dict['id'],self.highwords_id))
+##                    self.highwords_id+=1
+##                else:
+##                    self.highwords_rev_insert.append((self.rev_dict['id'],stumble))
+##            for item in self.special:
+##                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+##                stumble=self.special_dict.get(item)
+##                if (stumble==None):
+##                    self.special_dict[item]=self.special_id
+##                    self.special_rev_insert.append((self.rev_dict['id'], self.special_id))
+##                    self.special_id+=1
+##                else:
+##                    self.special_rev_insert.append((self.rev_dict['id'], stumble))
             for item in self.inlinks:
                 item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
                 stumble=self.inlinks_dict.get(item)
@@ -344,52 +346,30 @@ class wikiHandler(ContentHandler):
         #################################################
         elif name=='page':
             ################################################
-            #We must write the las revinsert before finishing this page
-            if self.options.fileout:
-                self.revinsert+=";\n"
-            # Write output to SQL file
-                self.revfile = codecs.open(self.options.revfile,'a','utf_8')
-                self.revfile.write(self.revinsert)
-                self.revfile.close()
-            elif self.options.streamout:
-                # DON'T WRITE SQL TO FILES, GENERATE ENCONDED SQL STREAM FOR MYSQL
-                self.revinsert+=";"
-                print self.revinsert.encode('utf_8')
-            elif self.options.monitor:
-                while 1:
-                    try:
-                        dbaccess.raw_query_SQL(self.acceso[1], self.revinsert.encode('utf_8'))
-                    except (Exception), e:
-                        print e
-                    else:
-                        break
-            #Reset status vars
-            self.revinsertrows=0
-            self.revinsertsize=0
             ################################################
             #GENERATE AND COMMIT SPECIAL VALUES INSERTS FOR ALL REVISIONS OF THIS PAGE
             # CREATE INSERT STRINGS FROM values
             ##HIGHLIGHTED WORDS
-            self.high_insert_st='INSERT INTO highlight VALUES'
-            for item in self.highwords_dict.iteritems():
-                self.high_insert_st+="("+str(item[1])+',"'+item[0]+'")'
-            self.high_insert_st=re.sub(self.patdumb, "),(", self.high_insert_st)
-##            self.debug(self.high_insert_st)
-            self.high_rev_insert_st='INSERT INTO rev_highlight VALUES'
-            for item in self.highwords_rev_insert:
-                self.high_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
-            self.high_rev_insert_st=re.sub(self.patdumb, "),(", self.high_rev_insert_st)
-##            self.debug(self.high_rev_insert_st)
-            ##SPECIAL LINKS
-            self.special_insert_st='INSERT INTO special VALUES'
-            for item in self.special_dict.iteritems():
-                self.special_insert_st+="("+str(item[1])+',"'+item[0]+'")'
-            self.special_insert_st=re.sub(self.patdumb,"),(", self.special_insert_st)
-##            self.debug(self.special_insert_st)
-            self.special_rev_insert_st='INSERT INTO rev_special VALUES'
-            for item in self.special_rev_insert:
-                self.special_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
-            self.special_rev_insert_st=re.sub(self.patdumb,"),(",self.special_rev_insert_st)
+##            self.high_insert_st='INSERT INTO highlight VALUES'
+##            for item in self.highwords_dict.iteritems():
+##                self.high_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+##            self.high_insert_st=re.sub(self.patdumb, "),(", self.high_insert_st)
+####            self.debug(self.high_insert_st)
+##            self.high_rev_insert_st='INSERT INTO rev_highlight VALUES'
+##            for item in self.highwords_rev_insert:
+##                self.high_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+##            self.high_rev_insert_st=re.sub(self.patdumb, "),(", self.high_rev_insert_st)
+####            self.debug(self.high_rev_insert_st)
+##            ##SPECIAL LINKS
+##            self.special_insert_st='INSERT INTO special VALUES'
+##            for item in self.special_dict.iteritems():
+##                self.special_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+##            self.special_insert_st=re.sub(self.patdumb,"),(", self.special_insert_st)
+####            self.debug(self.special_insert_st)
+##            self.special_rev_insert_st='INSERT INTO rev_special VALUES'
+##            for item in self.special_rev_insert:
+##                self.special_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+##            self.special_rev_insert_st=re.sub(self.patdumb,"),(",self.special_rev_insert_st)
 ##            self.debug(self.special_rev_insert_st)
             ##INLINKS
             self.inlinks_insert_st='INSERT INTO inlink VALUES'
@@ -476,12 +456,12 @@ class wikiHandler(ContentHandler):
 ##                        print str(len(self.highwords_dict))+" "+\
 ##                        str(len(self.special_dict))+ " "+str(len(self.inlinks_dict))+ " "+\
 ##                        str(len(self.outlinks_dict))+ " "+str(len(self.trans_dict))+"\n"
-                        if len(self.highwords_dict)>0:
-                            dbaccess.raw_query_SQL(self.acceso[1], self.high_insert_st.encode('utf_8'))
-                            dbaccess.raw_query_SQL(self.acceso[1], self.high_rev_insert_st.encode('utf_8'))
-                        if len(self.special_dict)>0:
-                            dbaccess.raw_query_SQL(self.acceso[1], self.special_insert_st.encode('utf_8'))
-                            dbaccess.raw_query_SQL(self.acceso[1], self.special_rev_insert_st.encode('utf_8'))
+##                        if len(self.highwords_dict)>0:
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.high_insert_st.encode('utf_8'))
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.high_rev_insert_st.encode('utf_8'))
+##                        if len(self.special_dict)>0:
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.special_insert_st.encode('utf_8'))
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.special_rev_insert_st.encode('utf_8'))
                         if len(self.inlinks_dict)>0:
                             dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_insert_st.encode('utf_8'))
                             dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_rev_insert_st.encode('utf_8'))
@@ -589,6 +569,28 @@ class wikiHandler(ContentHandler):
             
     def endDocument(self):
         ################################################
+        #We must write the las revinsert before finishing this page
+        if self.options.fileout:
+            self.revinsert+=";\n"
+        # Write output to SQL file
+            self.revfile = codecs.open(self.options.revfile,'a','utf_8')
+            self.revfile.write(self.revinsert)
+            self.revfile.close()
+        elif self.options.streamout:
+            # DON'T WRITE SQL TO FILES, GENERATE ENCONDED SQL STREAM FOR MYSQL
+            self.revinsert+=";"
+            print self.revinsert.encode('utf_8')
+        elif self.options.monitor:
+            while 1:
+                try:
+                    dbaccess.raw_query_SQL(self.acceso[1], self.revinsert.encode('utf_8'))
+                except (Exception), e:
+                    print e
+                else:
+                    break
+        #Reset status vars
+        self.revinsertrows=0
+        self.revinsertsize=0
         #We must write the last pageinsert before finishing this dump
         if self.options.fileout:
         # Write output to SQL file

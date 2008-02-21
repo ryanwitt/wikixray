@@ -68,9 +68,9 @@ CREATE TABLE /*$wgDBprefix*/revision (
   -- Number of words of the revision's current source text.
   rev_num_words int NOT NULL,
   -- Number of highlighted words
-  rev_num_highwords int NOT NULL,
+  ##rev_num_highwords int NOT NULL,
   -- Number of special links
-  rev_num_special int NOT NULL,
+  ##rev_num_special int NOT NULL,
   -- Number of internal links
   rev_num_inlinks int NOT NULL,
   -- Number of external links
@@ -107,34 +107,34 @@ CREATE TABLE namespaces (
 );
 
 --Table for highlighted words in each revision
-CREATE TABLE highlight (
-  highword_id int unsigned NOT NULL,
-  -- Highlighted text
-  highword_text text NOT NULL default '',
-  PRIMARY KEY highword_id (highword_id)
-)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+#CREATE TABLE highlight (
+#  highword_id int unsigned NOT NULL,
+#  -- Highlighted text
+#  highword_text text NOT NULL default '',
+#  PRIMARY KEY highword_id (highword_id)
+#)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 -- Intermediate table linking highword_id with multiple rev_id
-CREATE TABLE rev_highlight (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL ,
-  highword_id int unsigned NOT NULL
-)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+#CREATE TABLE rev_highlight (
+#  -- Foreing key to rev_id
+#  rev_id int unsigned NOT NULL ,
+#  highword_id int unsigned NOT NULL
+#)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Table for special links in each revision
-CREATE TABLE special (
-  special_id int unsigned NOT NULL ,
-  -- Special links
-  special_text text NOT NULL default '',
-  PRIMARY KEY special_id (special_id)
-)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+#CREATE TABLE special (
+#  special_id int unsigned NOT NULL ,
+#  -- Special links
+#  special_text text NOT NULL default '',
+#  PRIMARY KEY special_id (special_id)
+#)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 -- Intermediate table linking highword_id with multiple rev_id
-CREATE TABLE rev_special (
-  -- Foreing key to rev_id
-  rev_id int unsigned NOT NULL,
-  special_id int unsigned NOT NULL
-)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
+#CREATE TABLE rev_special (
+#  -- Foreing key to rev_id
+#  rev_id int unsigned NOT NULL,
+#  special_id int unsigned NOT NULL
+#)MAX_ROWS=100000000 AVG_ROW_LENGTH=1024;
 
 --Table for inlinks links in each revision
 CREATE TABLE inlink (

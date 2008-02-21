@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2008-02-17, 02:36:52 -->
+<!-- Saved: 2008-02-21, 18:36:13 -->
 <Tasks version="3.8">
   <Task priority="1" completed="0" bugfix="1">
     <Description>FIXME: repeat executions with different percentages</Description>
@@ -174,33 +174,53 @@
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO: Substitute the find command with a regexp</Description>
-    <Created>2008-02-17, 02:14:37</Created>
+    <Description>TODO: Solve lookup in global scope if the special item did not show up in any previous revision</Description>
+    <Created>2008-02-21, 16:58:46</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
       </Filename>
-      <Linenumber>168</Linenumber>
+      <Linenumber>99</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Substitute the find command with a regexp</Description>
+    <Created>2008-02-21, 16:58:46</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax_research.py</Name>
+      </Filename>
+      <Linenumber>170</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Print report status to log file</Description>
-    <Created>2008-02-17, 02:14:37</Created>
+    <Created>2008-02-21, 16:58:46</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
       </Filename>
-      <Linenumber>340</Linenumber>
+      <Linenumber>342</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: get a filename for special inserts</Description>
-    <Created>2008-02-17, 02:14:37</Created>
+    <Created>2008-02-21, 16:58:46</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
       </Filename>
-      <Linenumber>434</Linenumber>
+      <Linenumber>414</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Ad-hoc acuerdate de quitar esto POR DIOSSS</Description>
+    <Created>2008-02-21, 17:07:32</Created>
+    <Resource>
+      <Filename>
+        <Name>dbdump.py</Name>
+      </Filename>
+      <Linenumber>118</Linenumber>
     </Resource>
   </Task>
 </Tasks>

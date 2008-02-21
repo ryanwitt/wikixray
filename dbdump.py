@@ -114,7 +114,9 @@ class dump(object):
     def decompress (self):
         """
         Decompress the DB dumps into MySQL
-        """	
+        """
+        ##TODO: Ad-hoc acuerdate de quitar esto POR DIOSSS
+        self.filename="mtwiki-latest-pages-meta-history.xml.7z" 
         if self.dumptype=="research":
             program="dump_sax_research.py"
         elif self.dumptype=="standard":
