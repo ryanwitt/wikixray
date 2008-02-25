@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Tasks SYSTEM "Tasks-3.8.dtd">
 <!-- Tasks file for project WikiXRay -->
-<!-- Saved: 2008-02-21, 18:36:13 -->
+<!-- Saved: 2008-02-26, 00:58:31 -->
 <Tasks version="3.8">
   <Task priority="1" completed="0" bugfix="1">
     <Description>FIXME: repeat executions with different percentages</Description>
@@ -31,76 +31,6 @@
         <Name>performer.py</Name>
       </Filename>
       <Linenumber>433</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO: Print report status to log file</Description>
-    <Created>2008-02-10, 18:23:20</Created>
-    <Resource>
-      <Filename>
-        <Name>dump_sax.py</Name>
-      </Filename>
-      <Linenumber>254</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO: jfelipe- Think about implementing strip of wiki text and special HTML codes</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>602</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO:</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>664</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO:</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>670</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO:</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>676</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO:</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>681</Linenumber>
-    </Resource>
-  </Task>
-  <Task priority="1" completed="0" bugfix="0">
-    <Description>TODO:</Description>
-    <Created>2008-02-10, 18:23:27</Created>
-    <Resource>
-      <Filename>
-        <Name>dbanaly.py</Name>
-      </Filename>
-      <Linenumber>686</Linenumber>
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
@@ -174,8 +104,78 @@
     </Resource>
   </Task>
   <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: jfelipe- Think about implementing strip of wiki text and special HTML codes</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>602</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>664</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>670</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>676</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>681</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO:</Description>
+    <Created>2008-02-26, 00:22:36</Created>
+    <Resource>
+      <Filename>
+        <Name>dbanaly.py</Name>
+      </Filename>
+      <Linenumber>686</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
+    <Description>TODO: Print report status to log file</Description>
+    <Created>2008-02-26, 00:40:15</Created>
+    <Resource>
+      <Filename>
+        <Name>dump_sax.py</Name>
+      </Filename>
+      <Linenumber>254</Linenumber>
+    </Resource>
+  </Task>
+  <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Solve lookup in global scope if the special item did not show up in any previous revision</Description>
-    <Created>2008-02-21, 16:58:46</Created>
+    <Created>2008-02-26, 00:47:38</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
@@ -185,7 +185,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Substitute the find command with a regexp</Description>
-    <Created>2008-02-21, 16:58:46</Created>
+    <Created>2008-02-26, 00:47:38</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
@@ -195,7 +195,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Print report status to log file</Description>
-    <Created>2008-02-21, 16:58:46</Created>
+    <Created>2008-02-26, 00:47:38</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
@@ -205,7 +205,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: get a filename for special inserts</Description>
-    <Created>2008-02-21, 16:58:46</Created>
+    <Created>2008-02-26, 00:47:38</Created>
     <Resource>
       <Filename>
         <Name>dump_sax_research.py</Name>
@@ -215,7 +215,7 @@
   </Task>
   <Task priority="1" completed="0" bugfix="0">
     <Description>TODO: Ad-hoc acuerdate de quitar esto POR DIOSSS</Description>
-    <Created>2008-02-21, 17:07:32</Created>
+    <Created>2008-02-26, 00:58:15</Created>
     <Resource>
       <Filename>
         <Name>dbdump.py</Name>
