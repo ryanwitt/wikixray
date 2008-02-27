@@ -28,6 +28,8 @@ import dbdump, dbanaly
 import qA_conf as q
 import graphRMySQL
 
+#import profile
+
 """ 
 STEPS
 
@@ -40,13 +42,13 @@ STEPS
 	
 3. Call the graphics module to generate charts, plots and statistical results for each language version
 """
-if __name__ == '__main__':
+def test():
     #Take config form file
     conf=q.qA_conf()
     
     #Lista de idiomas que queremos analizar
     #ListaIdiomas=conf.langs
-    ListaIdiomas=["mtwiki","alswiki"]
+    ListaIdiomas=["iawiki"]
     
     print "STARTING DATABASE DUMP DECOMPRESSION...\n"
     for idioma in ListaIdiomas:
@@ -78,4 +80,7 @@ if __name__ == '__main__':
 ##        
 ##    print "DATABASE ANALYSIS COMPLETED...\n"
     print "END OF SCRIPT EXECUTION. GOOD LUCK WITH RESULTS INTERPRETATION.\n"
+if __name__ == '__main__':
+    test()
+    
     

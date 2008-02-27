@@ -236,33 +236,33 @@ class wikiHandler(ContentHandler):
 ##                    self.special_id+=1
 ##                else:
 ##                    self.special_rev_insert.append((self.rev_dict['id'], stumble))
-            for item in self.inlinks:
-                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
-                stumble=self.inlinks_dict.get(item)
-                if (stumble==None):
-                    self.inlinks_dict[item]=self.inlinks_id
-                    self.inlinks_rev_insert.append((self.rev_dict['id'], self.inlinks_id))
-                    self.inlinks_id+=1
-                else:
-                    self.inlinks_rev_insert.append((self.rev_dict['id'], stumble))
-            for item in self.outlinks:
-                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
-                stumble=self.outlinks_dict.get(item)
-                if (stumble==None):
-                    self.outlinks_dict[item]=self.outlinks_id
-                    self.outlinks_rev_insert.append((self.rev_dict['id'], self.outlinks_id))
-                    self.outlinks_id+=1
-                else:
-                    self.outlinks_rev_insert.append((self.rev_dict['id'], stumble))
-            for item in self.trans:
-                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
-                stumble=self.trans_dict.get(item)
-                if (stumble==None):
-                    self.trans_dict[item]=self.trans_id
-                    self.trans_rev_insert.append((self.rev_dict['id'], self.trans_id))
-                    self.trans_id+=1
-                else:
-                    self.trans_rev_insert.append((self.rev_dict['id'], stumble))
+##            for item in self.inlinks:
+##                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+##                stumble=self.inlinks_dict.get(item)
+##                if (stumble==None):
+##                    self.inlinks_dict[item]=self.inlinks_id
+##                    self.inlinks_rev_insert.append((self.rev_dict['id'], self.inlinks_id))
+##                    self.inlinks_id+=1
+##                else:
+##                    self.inlinks_rev_insert.append((self.rev_dict['id'], stumble))
+##            for item in self.outlinks:
+##                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+##                stumble=self.outlinks_dict.get(item)
+##                if (stumble==None):
+##                    self.outlinks_dict[item]=self.outlinks_id
+##                    self.outlinks_rev_insert.append((self.rev_dict['id'], self.outlinks_id))
+##                    self.outlinks_id+=1
+##                else:
+##                    self.outlinks_rev_insert.append((self.rev_dict['id'], stumble))
+##            for item in self.trans:
+##                item=item.replace("\\","\\\\").replace("'","\\'").replace('"', '\\"')
+##                stumble=self.trans_dict.get(item)
+##                if (stumble==None):
+##                    self.trans_dict[item]=self.trans_id
+##                    self.trans_rev_insert.append((self.rev_dict['id'], self.trans_id))
+##                    self.trans_id+=1
+##                else:
+##                    self.trans_rev_insert.append((self.rev_dict['id'], stumble))
             ##############################################
             ## LOOK-AHEAD ALGORITHM
             ##############################################
@@ -293,11 +293,16 @@ class wikiHandler(ContentHandler):
                     print self.revinsert.encode('utf_8')
                     print self.revinsert.encode('utf_8')
                 elif self.options.monitor:
-                    while 1:
+                    chances=0
+                    while chances<5:
                         try:
                             dbaccess.raw_query_SQL(self.acceso[1], self.revinsert.encode('utf_8'))
                         except (Exception), e:
-                            print e
+                            self.printfile = codecs.open("error_"+self.options.database,'a','utf_8')
+                            self.printfile.write(str(e)+"\n")
+                            self.printfile.write(self.revinsert[0:30]+"\n**********************************")
+                            self.printfile.close()
+                            chances+=1
                         else:
                             break
                 self.revinsert="INSERT INTO revision VALUES"+newrevinsert
@@ -339,8 +344,21 @@ class wikiHandler(ContentHandler):
                         str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
                         self.printfile.close()
             if self.options.verbose and self.options.log is not None:
-                # TODO: Print report status to log file
-                pass
+                if self.rev_num%1000==0:
+                    self.timeCheck=datetime.datetime.now()
+                    self.timeDelta=self.timeCheck-self.start
+                    if self.timeDelta.seconds==0:
+                        self.printfile = codecs.open(self.options.log,'a','utf_8')
+                        self.printfile.write("page "+str(self.page_num)+" ("+\
+                        str( 1e6*float(self.page_num)/self.timeDelta.microseconds)+" pags. per sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(1e6*float(self.rev_num)/self.timeDelta.microseconds)+" revs. per sec.)\n")
+                        self.printfile.close()
+                    else:
+                        self.printfile = codecs.open(self.options.log,'a','utf_8')
+                        self.printfile.write("page "+str(self.page_num)+" ("+\
+                        str( float(self.page_num)/self.timeDelta.seconds)+" pags. per sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
+                        self.printfile.close()
         #################################################
         ## END OF PAGE
         #################################################
@@ -372,37 +390,37 @@ class wikiHandler(ContentHandler):
 ##            self.special_rev_insert_st=re.sub(self.patdumb,"),(",self.special_rev_insert_st)
 ##            self.debug(self.special_rev_insert_st)
             ##INLINKS
-            self.inlinks_insert_st='INSERT INTO inlink VALUES'
-            for item in self.inlinks_dict.iteritems():
-                self.inlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
-            self.inlinks_insert_st=re.sub(self.patdumb,"),(", self.inlinks_insert_st)
-##            self.debug(self.inlinks_insert_st)
-            self.inlinks_rev_insert_st='INSERT INTO rev_inlink VALUES'
-            for item in self.inlinks_rev_insert:
-                self.inlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
-            self.inlinks_rev_insert_st=re.sub(self.patdumb,"),(", self.inlinks_rev_insert_st)
-##            self.debug(self.inlinks_rev_insert_st)
-            ##OUTLINKS
-            self.outlinks_insert_st='INSERT INTO outlink VALUES'
-            for item in self.outlinks_dict.iteritems():
-                self.outlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
-            self.outlinks_insert_st=re.sub(self.patdumb,"),(", self.outlinks_insert_st)
-##            self.debug(self.outlinks_insert_st)
-            self.outlinks_rev_insert_st='INSERT INTO rev_outlink VALUES'
-            for item in self.outlinks_rev_insert:
-                self.outlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
-            self.outlinks_rev_insert_st=re.sub(self.patdumb,"),(",self.outlinks_rev_insert_st)
-##            self.debug(self.outlinks_rev_insert_st)
-            ##TRANSLATION LINKS
-            self.trans_insert_st='INSERT INTO trans VALUES'
-            for item in self.trans_dict.iteritems():
-                self.trans_insert_st+="("+str(item[1])+',"'+item[0]+'")'
-            self.trans_insert_st=re.sub(self.patdumb,"),(",self.trans_insert_st)
-##            self.debug(self.trans_insert_st)
-            self.trans_rev_insert_st='INSERT INTO rev_trans VALUES'
-            for item in self.trans_rev_insert:
-                self.trans_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
-            self.trans_rev_insert_st=re.sub(self.patdumb,"),(", self.trans_rev_insert_st)
+##            self.inlinks_insert_st='INSERT INTO inlink VALUES'
+##            for item in self.inlinks_dict.iteritems():
+##                self.inlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+##            self.inlinks_insert_st=re.sub(self.patdumb,"),(", self.inlinks_insert_st)
+####            self.debug(self.inlinks_insert_st)
+##            self.inlinks_rev_insert_st='INSERT INTO rev_inlink VALUES'
+##            for item in self.inlinks_rev_insert:
+##                self.inlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+##            self.inlinks_rev_insert_st=re.sub(self.patdumb,"),(", self.inlinks_rev_insert_st)
+####            self.debug(self.inlinks_rev_insert_st)
+##            ##OUTLINKS
+##            self.outlinks_insert_st='INSERT INTO outlink VALUES'
+##            for item in self.outlinks_dict.iteritems():
+##                self.outlinks_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+##            self.outlinks_insert_st=re.sub(self.patdumb,"),(", self.outlinks_insert_st)
+####            self.debug(self.outlinks_insert_st)
+##            self.outlinks_rev_insert_st='INSERT INTO rev_outlink VALUES'
+##            for item in self.outlinks_rev_insert:
+##                self.outlinks_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+##            self.outlinks_rev_insert_st=re.sub(self.patdumb,"),(",self.outlinks_rev_insert_st)
+####            self.debug(self.outlinks_rev_insert_st)
+##            ##TRANSLATION LINKS
+##            self.trans_insert_st='INSERT INTO trans VALUES'
+##            for item in self.trans_dict.iteritems():
+##                self.trans_insert_st+="("+str(item[1])+',"'+item[0]+'")'
+##            self.trans_insert_st=re.sub(self.patdumb,"),(",self.trans_insert_st)
+####            self.debug(self.trans_insert_st)
+##            self.trans_rev_insert_st='INSERT INTO rev_trans VALUES'
+##            for item in self.trans_rev_insert:
+##                self.trans_rev_insert_st+="("+str(item[0])+","+str(item[1])+")"
+##            self.trans_rev_insert_st=re.sub(self.patdumb,"),(", self.trans_rev_insert_st)
 ##            self.debug(self.trans_rev_insert_st)
             #COMMIT NEAT INSERTS
             if self.options.fileout:
@@ -450,9 +468,9 @@ class wikiHandler(ContentHandler):
                 if len(self.trans_dict)>0:
                     print self.trans_insert_st.encode('utf_8'); 
                     print self.trans_rev_insert_st.encode('utf_8')
-            elif self.options.monitor:
-                while 1:
-                    try:
+##            elif self.options.monitor:
+##                while 1:
+##                    try:
 ##                        print str(len(self.highwords_dict))+" "+\
 ##                        str(len(self.special_dict))+ " "+str(len(self.inlinks_dict))+ " "+\
 ##                        str(len(self.outlinks_dict))+ " "+str(len(self.trans_dict))+"\n"
@@ -462,19 +480,19 @@ class wikiHandler(ContentHandler):
 ##                        if len(self.special_dict)>0:
 ##                            dbaccess.raw_query_SQL(self.acceso[1], self.special_insert_st.encode('utf_8'))
 ##                            dbaccess.raw_query_SQL(self.acceso[1], self.special_rev_insert_st.encode('utf_8'))
-                        if len(self.inlinks_dict)>0:
-                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_insert_st.encode('utf_8'))
-                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_rev_insert_st.encode('utf_8'))
-                        if len(self.outlinks_dict)>0:
-                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_insert_st.encode('utf_8'))
-                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_rev_insert_st.encode('utf_8'))
-                        if len(self.trans_dict)>0:
-                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_insert_st.encode('utf_8'))
-                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_rev_insert_st.encode('utf_8'))
-                    except (Exception), e:
-                        print e
-                    else:
-                        break
+##                        if len(self.inlinks_dict)>0:
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_insert_st.encode('utf_8'))
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.inlinks_rev_insert_st.encode('utf_8'))
+##                        if len(self.outlinks_dict)>0:
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_insert_st.encode('utf_8'))
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.outlinks_rev_insert_st.encode('utf_8'))
+##                        if len(self.trans_dict)>0:
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_insert_st.encode('utf_8'))
+##                            dbaccess.raw_query_SQL(self.acceso[1], self.trans_rev_insert_st.encode('utf_8'))
+##                    except (Exception), e:
+##                        print e
+##                    else:
+##                        break
             #Reset status vars
             self.high_insert_st=""; self.high_rev_insert_st=""; self.special_insert_st=""
             self.special_rev_insert_st=""; self.inlinks_insert_st=""; self.inlinks_rev_insert_st=""
@@ -532,11 +550,16 @@ class wikiHandler(ContentHandler):
                     self.pageinsert+=";"
                     print self.pageinsert.encode('utf_8')
                 elif self.options.monitor:
-                    while 1:
+                    chances=0
+                    while chances<5:
                         try:
                             dbaccess.raw_query_SQL(self.acceso[1], self.pageinsert.encode('utf_8'))
                         except (Exception), e:
-                            print e
+                            self.printfile = codecs.open("error_"+self.options.database,'a','utf_8')
+                            self.printfile.write(str(e)+"\n")
+                            self.printfile.write(self.pageinsert[0:30]+"\n**********************************")
+                            self.printfile.close()
+                            chances+=1
                         else:
                             break
                 self.pageinsert="INSERT INTO page VALUES"+newpageinsert
@@ -581,11 +604,16 @@ class wikiHandler(ContentHandler):
             self.revinsert+=";"
             print self.revinsert.encode('utf_8')
         elif self.options.monitor:
-            while 1:
+            chances=0
+            while chances<5:
                 try:
                     dbaccess.raw_query_SQL(self.acceso[1], self.revinsert.encode('utf_8'))
                 except (Exception), e:
-                    print e
+                    self.printfile = codecs.open("error_"+self.options.database,'a','utf_8')
+                    self.printfile.write(str(e)+"\n")
+                    self.printfile.write(self.revinsert[0:30]+"\n**********************************")
+                    self.printfile.close()
+                    chances+=1
                 else:
                     break
         #Reset status vars
@@ -603,11 +631,16 @@ class wikiHandler(ContentHandler):
             self.pageinsert+=";"
             print self.pageinsert.encode('utf_8')
         elif self.options.monitor:
-            while 1:
+            chances=0
+            while chances<5:
                 try:
                     dbaccess.raw_query_SQL(self.acceso[1], self.pageinsert.encode('utf_8'))
                 except (Exception), e:
-                    print e
+                    self.printfile = codecs.open("error_"+self.options.database,'a','utf_8')
+                    self.printfile.write(str(e)+"\n")
+                    self.printfile.write(self.pageinsert[0:30]+"\n**********************************")
+                    self.printfile.close()
+                    chances+=1
                 else:
                     break
         #Reset status vars
@@ -634,7 +667,11 @@ class wikiHandler(ContentHandler):
                     try:
                         dbaccess.raw_query_SQL(self.acceso[1], insertns.encode('utf_8'))
                     except (Exception), e:
-                        print e
+                        self.printfile = codecs.open("error_"+self.options.database,'a','utf_8')
+                        self.printfile.write(str(e)+"\n")
+                        self.printfile.write(insertns[0:30]+"\n**********************************")
+                        self.printfile.close()
+                        chances+=1
                     else:
                         break
         ###CLOSE DATABASE CONNECTION IF WE ARE USING MONITOR MODE
@@ -648,6 +685,13 @@ class wikiHandler(ContentHandler):
         print >> sys.stderr, "File successfully parsed..."
         print >> sys.stderr, "page %d (%f pags./sec.), revision %d (%f revs./sec.)" % (self.page_num,\
         float(self.page_num)/self.timeDelta.seconds, self.rev_num, float(self.rev_num)/self.timeDelta.seconds)
+        if self.options.verbose and self.options.log is not None:
+            self.printfile = codecs.open(self.options.log,'a','utf_8')
+            self.printfile.write("\nFile successfully parsed..."+str(self.page_num)+" ("+\
+            str( float(self.page_num)/self.timeDelta.seconds)+" pags. per sec.), revision "+\
+            str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
+            self.printfile.close()
+            
     def debug(self, str):
         self.sqlfile = codecs.open('debug.sql','a','utf_8')
         self.sqlfile.write(str)
@@ -692,7 +736,7 @@ if __name__ == '__main__':
     help="Display standard status reports about the parsing process [default]")
     parserc.add_option("-q", "--quiet", action="store_false", dest="verbose",
     help="Do not display any status reports")
-    parserc.add_option("-l","--log", dest="log", metavar="LOGFILE",
+    parserc.add_option("-l","--log", dest="log", metavar="LOGFILE", default="standard_log.log",
     help="Store status reports in a log file; do not display them")
     parserc.add_option("--insertmaxsize", dest="imaxsize", metavar="MAXSIZE", type="int",
     default=156, help="Max size in KB of the MySQL extended inserts [default: %default] "

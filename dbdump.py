@@ -45,7 +45,7 @@ class dump(object):
         self.files=["pages-meta-history.xml.7z", "redirect.sql.gz","page_restrictions.sql.gz",\
         "user_groups.sql.gz", "logging.sql.gz", "interwiki.sql.gz", "langlinks.sql.gz", "externallinks.sql.gz",\
         "templatelinks.sql.gz", "imagelinks.sql.gz", "categorylinks.sql.gz", "pagelinks.sql.gz", "oldimage.sql.gz",\
-        "image.sql.gz", "sitestats.sql.gz"]
+        "image.sql.gz"]
         self.filename=""
         self.filenameTemplate=string.Template("""$language-latest-$file""") #dump's filename in Wikimedia's server
         #URL to download the file
@@ -127,7 +127,8 @@ class dump(object):
         self.filename=self.filenameTemplate.safe_substitute(language=self.language,file=self.files[0])
         #Then we call our parser "dump_sax_research.py" to load data into MySQL
         command_7z="7za e -so dumps/"+self.filename+" | "+"python "+program+\
-        " -u "+self.msqlu+" -p "+self.msqlp+" -d "+"wx_"+self.language+"_"+self.dumptype
+        " -u "+self.msqlu+" -p "+self.msqlp+" -d "+"wx_"+self.language+"_"+self.dumptype+\
+        " --log "+self.language+".log"
         success=os.system(command_7z)
         if success == 0:
             print "DB "+"wx_"+self.language+\
@@ -138,30 +139,30 @@ class dump(object):
             return -1
         #Loading into MySQL other interesting tables directly provided in SQL format
         #SQL code to generate the tables is embedded in the SQL file itself
-##        for index in range(1,len(self.files)):
-##            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=self.files[index])
-##            command_gzip="gzip -d dumps/"+self.filename
-##            command_mysql="mysql -u "+self.msqlu+" -p"+self.msqlp+\
-##            " wx_"+self.language+"_"+self.dumptype+\
-##            " < dumps/"+self.filename.strip(".gz")
-##            command_comp="gzip dumps/"+self.filename.strip(".gz")
-##            print "Decompressing "+self.filename+"..."
-##            success=os.system(command_gzip)
-##            if success==0:
-##                print "Loading "+self.filename.strip(".gz")+" into MySQL database..."
-##                success=os.system(command_mysql)
-##                if success==0:
-##                    print "Compressing again "+self.filename.strip(".gz")+"..."
-##                    success=os.system(command_comp)
-##                    if success!=0:
-##                        print "Error compressing again "+self.filename.strip(".gz")
-##                        return -1
-##                else:
-##                    print "Error loading "+self.filename.strip(".gz")
-##                    return -1
-##            else:
-##                print "Error decompressing "+self.filename
-##                return -1
+        for index in range(1,len(self.files)):
+            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=self.files[index])
+            command_gzip="gzip -d dumps/"+self.filename
+            command_mysql="mysql -u "+self.msqlu+" -p"+self.msqlp+\
+            " wx_"+self.language+"_"+self.dumptype+\
+            " < dumps/"+self.filename.strip(".gz")
+            command_comp="gzip dumps/"+self.filename.strip(".gz")
+            print "Decompressing "+self.filename+"..."
+            success=os.system(command_gzip)
+            if success==0:
+                print "Loading "+self.filename.strip(".gz")+" into MySQL database..."
+                success=os.system(command_mysql)
+                if success==0:
+                    print "Compressing again "+self.filename.strip(".gz")+"..."
+                    success=os.system(command_comp)
+                    if success!=0:
+                        print "Error compressing again "+self.filename.strip(".gz")
+                        return -1
+                else:
+                    print "Error loading "+self.filename.strip(".gz")
+                    return -1
+            else:
+                print "Error decompressing "+self.filename
+                return -1
         print "Generating indexes for tables page and revision...\n"
         print "Depending on the dump size this may take a while...\n"
         acceso = dbaccess.get_Connection("localhost", 3306, self.msqlu,\
