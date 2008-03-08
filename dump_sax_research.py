@@ -676,7 +676,7 @@ class wikiHandler(ContentHandler):
                         break
         ###CLOSE DATABASE CONNECTION IF WE ARE USING MONITOR MODE
         if self.options.monitor and (not self.options.fileout and not self.options.streamout):
-            dbaccess.close_Connection(self.acceso[1])
+            dbaccess.close_Connection(self.acceso[0])
         ################################################
         #Checking out total time consumed and display end message
         self.timeCheck=datetime.datetime.now()

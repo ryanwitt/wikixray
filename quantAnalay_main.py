@@ -48,7 +48,7 @@ def test():
     
     #Lista de idiomas que queremos analizar
     #ListaIdiomas=conf.langs
-    ListaIdiomas=["iawiki"]
+    ListaIdiomas=["zhwiki","eswiki","plwiki"]
     
     print "STARTING DATABASE DUMP DECOMPRESSION...\n"
     for idioma in ListaIdiomas:

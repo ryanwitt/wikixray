@@ -59,7 +59,7 @@ CREATE TABLE /*$wgDBprefix*/revision (
   rev_user_text varchar(255) binary NOT NULL default '',
   
   -- Timestamp
-  rev_timestamp binary(19) NOT NULL default '',
+  rev_timestamp datetime NOT NULL,
   
   -- Uncompressed length in bytes of the revision's current source text.
   rev_len int NOT NULL,
