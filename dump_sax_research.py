@@ -174,7 +174,7 @@ class wikiHandler(ContentHandler):
                 else:
                     self.isRedirect='0'
             ## Takes from the first argument the threshold for stub's length
-            if str(2*len(self.rev_dict['text']))<=self.options.stubth:
+            if 2*len(self.rev_dict['text'])<=self.options.stubth:
                 self.isStub='1'
             else:
                 self.isStub='0'
@@ -326,7 +326,7 @@ class wikiHandler(ContentHandler):
                     self.timeCheck=datetime.datetime.now()
                     self.timeDelta=self.timeCheck-self.start
                     if self.timeDelta.seconds==0:
-                        print >> sys.stderr, "page %d (%f pags. per sec.), revision %d (%f revs. per sec.)"\
+                        print >> sys.stderr, "page %d (%f pags./sec.), revision %d (%f revs./sec.)"\
                         % (self.page_num, 1e6*float(self.page_num)/self.timeDelta.microseconds,\
                         self.rev_num, 1e6*float(self.rev_num)/self.timeDelta.microseconds)
                         self.printfile = codecs.open(self.fileErrPath,'a','utf_8')
@@ -335,13 +335,13 @@ class wikiHandler(ContentHandler):
                         str(self.rev_num)+ " ("+str(1e6*float(self.rev_num)/self.timeDelta.microseconds)+" revs. per sec.)\n")
                         self.printfile.close()
                     else:
-                        print >> sys.stderr, "page %d (%f pags. per sec.), revision %d (%f revs. per sec.)"\
+                        print >> sys.stderr, "page %d (%f pags./sec.), revision %d (%f revs./sec.)"\
                         % (self.page_num, float(self.page_num)/self.timeDelta.seconds,\
                         self.rev_num, float(self.rev_num)/self.timeDelta.seconds)
                         self.printfile = codecs.open(self.fileErrPath,'a','utf_8')
                         self.printfile.write("page "+str(self.page_num)+" ("+\
-                        str( float(self.page_num)/self.timeDelta.seconds)+" pags. per sec.), revision "+\
-                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
+                        str( float(self.page_num)/self.timeDelta.seconds)+" pags./sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs./sec.)\n")
                         self.printfile.close()
             if self.options.verbose and self.options.log is not None:
                 if self.rev_num%1000==0:
@@ -350,14 +350,14 @@ class wikiHandler(ContentHandler):
                     if self.timeDelta.seconds==0:
                         self.printfile = codecs.open(self.options.log,'a','utf_8')
                         self.printfile.write("page "+str(self.page_num)+" ("+\
-                        str( 1e6*float(self.page_num)/self.timeDelta.microseconds)+" pags. per sec.), revision "+\
-                        str(self.rev_num)+ " ("+str(1e6*float(self.rev_num)/self.timeDelta.microseconds)+" revs. per sec.)\n")
+                        str( 1e6*float(self.page_num)/self.timeDelta.microseconds)+" pags./sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(1e6*float(self.rev_num)/self.timeDelta.microseconds)+" revs./sec.)\n")
                         self.printfile.close()
                     else:
                         self.printfile = codecs.open(self.options.log,'a','utf_8')
                         self.printfile.write("page "+str(self.page_num)+" ("+\
-                        str( float(self.page_num)/self.timeDelta.seconds)+" pags. per sec.), revision "+\
-                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs. per sec.)\n")
+                        str( float(self.page_num)/self.timeDelta.seconds)+" pags./sec.), revision "+\
+                        str(self.rev_num)+ " ("+str(float(self.rev_num)/self.timeDelta.seconds)+" revs./sec.)\n")
                         self.printfile.close()
         #################################################
         ## END OF PAGE

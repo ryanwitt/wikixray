@@ -48,12 +48,13 @@ def test():
     
     #Lista de idiomas que queremos analizar
     #ListaIdiomas=conf.langs
-    ListaIdiomas=["zhwiki","eswiki","plwiki"]
+    #ListaIdiomas=["ruwiki","svwiki"]
+    ListaIdiomas=["enwiki"]
     
     print "STARTING DATABASE DUMP DECOMPRESSION...\n"
     for idioma in ListaIdiomas:
         dump=dbdump.dump(language=idioma,msqlu=conf.msqlu, msqlp=conf.msqlp)
-        dump.download()
+        #dump.download()
         dump.decompress()
     print "DATABASE DUMP DECOMPRESSION FINISHED...\n"
     

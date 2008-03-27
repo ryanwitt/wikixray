@@ -139,30 +139,30 @@ class dump(object):
             return -1
         #Loading into MySQL other interesting tables directly provided in SQL format
         #SQL code to generate the tables is embedded in the SQL file itself
-        for index in range(1,len(self.files)):
-            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=self.files[index])
-            command_gzip="gzip -d dumps/"+self.filename
-            command_mysql="mysql -u "+self.msqlu+" -p"+self.msqlp+\
-            " wx_"+self.language+"_"+self.dumptype+\
-            " < dumps/"+self.filename.rstrip(".gz")
-            command_comp="gzip dumps/"+self.filename.rstrip(".gz")
-            print "Decompressing "+self.filename+"..."
-            success=os.system(command_gzip)
-            if success==0:
-                print "Loading "+self.filename.rstrip(".gz")+" into MySQL database..."
-                success=os.system(command_mysql)
-                if success==0:
-                    print "Compressing again "+self.filename.rstrip(".gz")+"..."
-                    success=os.system(command_comp)
-                    if success!=0:
-                        print "Error compressing again "+self.filename.rstrip(".gz")
-                        return -1
-                else:
-                    print "Error loading "+self.filename.rstrip(".gz")
-                    return -1
-            else:
-                print "Error decompressing "+self.filename
-                return -1
+##        for index in range(1,len(self.files)):
+##            self.filename=self.filenameTemplate.safe_substitute(language=self.language, file=self.files[index])
+##            command_gzip="gzip -d dumps/"+self.filename
+##            command_mysql="mysql -u "+self.msqlu+" -p"+self.msqlp+\
+##            " wx_"+self.language+"_"+self.dumptype+\
+##            " < dumps/"+self.filename.rstrip(".gz")
+##            command_comp="gzip dumps/"+self.filename.rstrip(".gz")
+##            print "Decompressing "+self.filename+"..."
+##            success=os.system(command_gzip)
+##            if success==0:
+##                print "Loading "+self.filename.rstrip(".gz")+" into MySQL database..."
+##                success=os.system(command_mysql)
+##                if success==0:
+##                    print "Compressing again "+self.filename.rstrip(".gz")+"..."
+##                    success=os.system(command_comp)
+##                    if success!=0:
+##                        print "Error compressing again "+self.filename.rstrip(".gz")
+##                        return -1
+##                else:
+##                    print "Error loading "+self.filename.rstrip(".gz")
+##                    return -1
+##            else:
+##                print "Error decompressing "+self.filename
+##                return -1
         print "Generating indexes for tables page and revision...\n"
         print "Depending on the dump size this may take a while...\n"
         acceso = dbaccess.get_Connection("localhost", 3306, self.msqlu,\
@@ -171,7 +171,7 @@ class dump(object):
         print "Generating index for page_len...\n"
         dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE page ADD INDEX (page_len)")
         print "Modifying rev_timestamp to support DATETIME and creating index...\n"
-        dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE revision MODIFY rev_timestamp DATETIME")
+        #dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE revision MODIFY rev_timestamp DATETIME")
         dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE revision ADD INDEX timestamp (rev_timestamp)")
         print "Generating index for rev_page and rev_timestamp...\n"
         dbaccess.raw_query_SQL(acceso[1],"ALTER TABLE revision ADD INDEX page_timestamp(rev_page, rev_timestamp)")
